@@ -1,0 +1,40 @@
+import { Navigate, Route, Routes } from 'react-router-dom'
+import DashboardLayout from '../components/layout/DashboardLayout'
+import LoginPage from '../pages/auth/LoginPage'
+import RegisterPage from '../pages/auth/RegisterPage'
+import CompanyPage from '../pages/config/CompanyPage'
+import EmissionPointsPage from '../pages/config/EmissionPointsPage'
+import EstablishmentsPage from '../pages/config/EstablishmentsPage'
+import CustomerListPage from '../pages/customers/CustomerListPage'
+import DashboardPage from '../pages/dashboard/DashboardPage'
+import DocumentStatusPage from '../pages/documents/DocumentStatusPage'
+import ReceivedDocumentsPage from '../pages/documents/ReceivedDocumentsPage'
+import ProductListPage from '../pages/products/ProductListPage'
+import GuestRoute from './GuestRoute'
+import ProtectedRoute from './ProtectedRoute'
+
+export default function AppRouter() {
+  return (
+    <Routes>
+      <Route element={<GuestRoute />}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+      </Route>
+
+      <Route element={<ProtectedRoute />}>
+        <Route element={<DashboardLayout />}>
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/customers" element={<CustomerListPage />} />
+          <Route path="/products" element={<ProductListPage />} />
+          <Route path="/documents" element={<DocumentStatusPage />} />
+          <Route path="/received-documents" element={<ReceivedDocumentsPage />} />
+          <Route path="/settings" element={<CompanyPage />} />
+          <Route path="/settings/establishments" element={<EstablishmentsPage />} />
+          <Route path="/settings/emission-points" element={<EmissionPointsPage />} />
+        </Route>
+      </Route>
+
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  )
+}
