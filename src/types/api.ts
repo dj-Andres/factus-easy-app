@@ -280,6 +280,13 @@ export interface PaymentMethod {
   description: string | null
 }
 
+export interface RetentionConfig {
+  name: string
+  type: number
+  code_sri: string
+  percentage: number
+}
+
 // ------------------------------------------------------------
 // Tax detail (stored in item `impuestos` JSON)
 // Note: keys follow SRI XML casing (codigo, codigoPorcentaje, tarifa,

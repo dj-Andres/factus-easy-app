@@ -5,6 +5,9 @@ import RegisterPage from '../pages/auth/RegisterPage'
 import CompanyPage from '../pages/config/CompanyPage'
 import EmissionPointsPage from '../pages/config/EmissionPointsPage'
 import EstablishmentsPage from '../pages/config/EstablishmentsPage'
+import PaymentMethodsPage from '../pages/config/PaymentMethodsPage'
+import RetentionConfigsPage from '../pages/config/RetentionConfigsPage'
+import SriTaxesPage from '../pages/config/SriTaxesPage'
 import CustomerListPage from '../pages/customers/CustomerListPage'
 import DashboardPage from '../pages/dashboard/DashboardPage'
 import DocumentStatusPage from '../pages/documents/DocumentStatusPage'
@@ -31,6 +34,9 @@ export default function AppRouter() {
           <Route path="/settings" element={<CompanyPage />} />
           <Route path="/settings/establishments" element={<EstablishmentsPage />} />
           <Route path="/settings/emission-points" element={<EmissionPointsPage />} />
+          <Route path="/settings/taxes" element={<SriTaxesPage />} />
+          <Route path="/settings/payment-methods" element={<PaymentMethodsPage />} />
+          <Route path="/settings/retentions" element={<RetentionConfigsPage />} />
         </Route>
       </Route>
 

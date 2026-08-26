@@ -136,6 +136,37 @@ const navGroups: NavGroup[] = [
           </svg>
         ),
       },
+      {
+        label: 'Impuestos SRI',
+        path: '/settings/taxes',
+        icon: (
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+            <circle cx="12" cy="12" r="9" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.5 15.5L15.5 8.5" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 9h1M14 14h1" />
+          </svg>
+        ),
+      },
+      {
+        label: 'Formas de Pago',
+        path: '/settings/payment-methods',
+        icon: (
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+            <rect x="3" y="6" width="18" height="13" rx="2" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18" />
+          </svg>
+        ),
+      },
+      {
+        label: 'Retenciones',
+        path: '/settings/retentions',
+        icon: (
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 3v6M15 3v6M9 15v6M15 15v6" />
+          </svg>
+        ),
+      },
     ],
   },
 ]
