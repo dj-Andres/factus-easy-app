@@ -7,6 +7,7 @@ import { quickInvoiceStatusLabel, quickInvoiceStatusTone } from '../../lib/quick
 import { formatDate, formatPrice } from '../../lib/documents'
 import Badge from '../../components/ui/Badge'
 import ConfirmModal from '../../components/ui/ConfirmModal'
+import QuickInvoiceViewModal from './components/QuickInvoiceViewModal'
 import type { QuickInvoice } from '../../types/api'
 
 const STATUS_OPTIONS = [
@@ -22,10 +23,14 @@ export default function QuickInvoiceListPage() {
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
-  const [from, setFrom] = useState('')
-  const [to, setTo] = useState('')
+  const [from, setFrom] = useState(() => {
+    const now = new Date()
+    return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10)
+  })
+  const [to, setTo] = useState(() => new Date().toISOString().slice(0, 10))
   const [page, setPage] = useState(1)
   const [confirmTarget, setConfirmTarget] = useState<QuickInvoice | null>(null)
+  const [viewTarget, setViewTarget] = useState<number | null>(null)
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -187,7 +192,7 @@ export default function QuickInvoiceListPage() {
                       <div className="flex justify-end gap-2">
                         <button
                           type="button"
-                          onClick={() => navigate(`/quick-invoices/${invoice.id}`)}
+                          onClick={() => setViewTarget(invoice.id)}
                           className="rounded-md px-2 py-1 text-[13px] font-medium text-muted transition-colors duration-150 hover:bg-surface-2"
                         >
                           Ver
@@ -264,6 +269,8 @@ export default function QuickInvoiceListPage() {
         confirmColor="blue"
         loading={sendMutation.isPending}
       />
+
+      <QuickInvoiceViewModal invoiceId={viewTarget} onClose={() => setViewTarget(null)} />
     </div>
   )
 }
