@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Alert, Button, Spinner, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from 'flowbite-react'
 import { useAuthStore } from '../../stores/authStore'
 import { useDeleteProduct, useProductOptions, useProducts } from '../../hooks/useProducts'
+import ConfirmModal from '../../components/ui/ConfirmModal'
 import type { Product } from '../../types/api'
 import ProductFormPage from './ProductFormPage'
 
@@ -24,6 +25,7 @@ export default function ProductListPage() {
 
   const [showForm, setShowForm] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+  const [confirmTarget, setConfirmTarget] = useState<Product | null>(null)
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -49,7 +51,6 @@ export default function ProductListPage() {
   const total = data?.total ?? 0
 
   const handleDelete = async (product: Product) => {
-    if (!window.confirm(`¿Eliminar "${product.description}"?`)) return
     deleteMutation.mutate(product.id)
   }
 
@@ -203,7 +204,7 @@ export default function ProductListPage() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleDelete(product)}
+                          onClick={() => setConfirmTarget(product)}
                           className="rounded-md px-2 py-1 text-[13px] font-medium text-danger transition-colors duration-150 hover:bg-danger/10"
                         >
                           Eliminar
@@ -252,6 +253,20 @@ export default function ProductListPage() {
         }}
         product={editingProduct}
         onSaved={handleSaved}
+      />
+
+      <ConfirmModal
+        isOpen={confirmTarget !== null}
+        onClose={() => setConfirmTarget(null)}
+        onConfirm={() => {
+          if (confirmTarget) handleDelete(confirmTarget)
+          setConfirmTarget(null)
+        }}
+        title="Eliminar producto"
+        message={confirmTarget ? `¿Eliminar "${confirmTarget.description}"?` : ''}
+        confirmLabel="Eliminar"
+        confirmColor="red"
+        loading={deleteMutation.isPending}
       />
     </div>
   )

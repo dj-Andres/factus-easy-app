@@ -12,6 +12,8 @@ import CustomerListPage from '../pages/customers/CustomerListPage'
 import DashboardPage from '../pages/dashboard/DashboardPage'
 import DocumentStatusPage from '../pages/documents/DocumentStatusPage'
 import ReceivedDocumentsPage from '../pages/documents/ReceivedDocumentsPage'
+import QuickInvoiceFormPage from '../pages/invoices/QuickInvoiceFormPage'
+import QuickInvoiceListPage from '../pages/invoices/QuickInvoiceListPage'
 import ProductListPage from '../pages/products/ProductListPage'
 import GuestRoute from './GuestRoute'
 import ProtectedRoute from './ProtectedRoute'
@@ -29,6 +31,10 @@ export default function AppRouter() {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/customers" element={<CustomerListPage />} />
           <Route path="/products" element={<ProductListPage />} />
+          <Route path="/quick-invoices" element={<QuickInvoiceListPage />} />
+          <Route path="/quick-invoices/new" element={<QuickInvoiceFormPage />} />
+          <Route path="/quick-invoices/:id" element={<QuickInvoiceFormPage />} />
+          <Route path="/quick-invoices/:id/edit" element={<QuickInvoiceFormPage />} />
           <Route path="/documents" element={<DocumentStatusPage />} />
           <Route path="/received-documents" element={<ReceivedDocumentsPage />} />
           <Route path="/settings" element={<CompanyPage />} />

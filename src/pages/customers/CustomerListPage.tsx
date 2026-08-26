@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Alert, Button, Spinner, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from 'flowbite-react'
 import { useAuthStore } from '../../stores/authStore'
 import { useCustomers, useDeleteCustomer } from '../../hooks/useCustomers'
+import ConfirmModal from '../../components/ui/ConfirmModal'
 import type { Customer } from '../../types/api'
 import CustomerFormPage from './CustomerFormPage'
 import { IDENTIFICATION_TYPES } from './constants'
@@ -15,6 +16,7 @@ export default function CustomerListPage() {
 
   const [showForm, setShowForm] = useState(false)
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null)
+  const [confirmTarget, setConfirmTarget] = useState<Customer | null>(null)
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -36,7 +38,6 @@ export default function CustomerListPage() {
   const total = data?.total ?? 0
 
   const handleDelete = (customer: Customer) => {
-    if (!window.confirm(`¿Eliminar a ${customer.name}?`)) return
     deleteMutation.mutate(customer.id)
   }
 
@@ -155,7 +156,7 @@ export default function CustomerListPage() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleDelete(customer)}
+                          onClick={() => setConfirmTarget(customer)}
                           className="rounded-md px-2 py-1 text-[13px] font-medium text-danger transition-colors duration-150 hover:bg-danger/10"
                         >
                           Eliminar
@@ -204,6 +205,20 @@ export default function CustomerListPage() {
         }}
         customer={editingCustomer}
         onSaved={handleSaved}
+      />
+
+      <ConfirmModal
+        isOpen={confirmTarget !== null}
+        onClose={() => setConfirmTarget(null)}
+        onConfirm={() => {
+          if (confirmTarget) handleDelete(confirmTarget)
+          setConfirmTarget(null)
+        }}
+        title="Eliminar cliente"
+        message={confirmTarget ? `¿Eliminar a ${confirmTarget.name}?` : ''}
+        confirmLabel="Eliminar"
+        confirmColor="red"
+        loading={deleteMutation.isPending}
       />
     </div>
   )

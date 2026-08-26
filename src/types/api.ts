@@ -314,6 +314,7 @@ export interface AdditionalDetail {
 export interface QuickInvoiceItem {
   id: number
   product_id: number
+  product_description: string | null
   cantidad: number
   precio_unitario: number | null
   descuento: number
@@ -327,6 +328,13 @@ export interface QuickInvoiceItem {
   updated_at: string
 }
 
+export interface QuickInvoicePayment {
+  formaPago: string
+  total: number
+  plazo?: number
+  unidadTiempo?: string
+}
+
 export interface QuickInvoice {
   id: number
   company_id: number
@@ -334,10 +342,13 @@ export interface QuickInvoice {
   establishment_id: number
   emission_point_id: number
   customer_id: number
+  customer_name: string | null
+  customer_identification: string | null
   emission_date: string
   series: string
   sequential: string
   payment_method: string
+  formas_pago?: QuickInvoicePayment[] | null
   license_plate: string | null
   additional_info: Record<string, string> | null
   total_sin_impuestos: number | null
@@ -346,6 +357,7 @@ export interface QuickInvoice {
   total: number | null
   document_type: DocumentTypeCode
   document_id: number | null
+  document_status: string | null
   status: string
   items?: QuickInvoiceItem[]
   created_at: string
@@ -367,7 +379,7 @@ export interface QuickInvoiceInput {
   emission_point_id: number
   customer_id: number
   items: QuickInvoiceItemInput[]
-  payment_method: string
+  formas_pago: QuickInvoicePayment[]
   license_plate?: string
   additional_info?: Record<string, string>
   emission_date?: string
