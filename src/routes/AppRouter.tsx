@@ -14,6 +14,8 @@ import DocumentStatusPage from '../pages/documents/DocumentStatusPage'
 import ReceivedDocumentsPage from '../pages/documents/ReceivedDocumentsPage'
 import QuickInvoiceFormPage from '../pages/invoices/QuickInvoiceFormPage'
 import QuickInvoiceListPage from '../pages/invoices/QuickInvoiceListPage'
+import QuickCreditNoteFormPage from '../pages/credit-notes/QuickCreditNoteFormPage'
+import QuickCreditNoteListPage from '../pages/credit-notes/QuickCreditNoteListPage'
 import ProductListPage from '../pages/products/ProductListPage'
 import GuestRoute from './GuestRoute'
 import ProtectedRoute from './ProtectedRoute'
@@ -35,6 +37,10 @@ export default function AppRouter() {
           <Route path="/quick-invoices/new" element={<QuickInvoiceFormPage />} />
           <Route path="/quick-invoices/:id" element={<QuickInvoiceFormPage />} />
           <Route path="/quick-invoices/:id/edit" element={<QuickInvoiceFormPage />} />
+          <Route path="/quick-credit-notes" element={<QuickCreditNoteListPage />} />
+          <Route path="/quick-credit-notes/new" element={<QuickCreditNoteFormPage />} />
+          <Route path="/quick-credit-notes/:id" element={<QuickCreditNoteFormPage />} />
+          <Route path="/quick-credit-notes/:id/edit" element={<QuickCreditNoteFormPage />} />
           <Route path="/documents" element={<DocumentStatusPage />} />
           <Route path="/received-documents" element={<ReceivedDocumentsPage />} />
           <Route path="/settings" element={<CompanyPage />} />

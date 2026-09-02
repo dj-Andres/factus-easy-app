@@ -394,6 +394,7 @@ export interface QuickInvoiceInput {
 export interface QuickCreditNoteItem {
   id: number
   product_id: number
+  product_description: string | null
   cantidad: number
   precio_unitario: number | null
   descuento: number
@@ -412,6 +413,8 @@ export interface QuickCreditNote {
   establishment_id: number
   emission_point_id: number
   customer_id: number
+  customer_name: string | null
+  customer_identification: string | null
   emission_date: string
   series: string
   sequential: string
@@ -427,6 +430,8 @@ export interface QuickCreditNote {
   total_descuento: number | null
   additional_info: Record<string, string> | null
   document_id: number | null
+  document_status: string | null
+  access_key: string | null
   status: string
   items?: QuickCreditNoteItem[]
   created_at: string
