@@ -7,6 +7,7 @@ export interface FormItem {
   cantidad: string
   precioUnitario: string
   descuento: string
+  iceValues?: Record<number, string>
 }
 
 export interface FormPayment {
@@ -21,6 +22,8 @@ export interface InfoRow {
 }
 
 export interface ItemTax {
+  taxId: number
+  taxType: string
   name: string
   percentage: number
   valor: number
@@ -51,11 +54,40 @@ export function buildBreakdown(items: FormItem[], productsById: Map<number, Prod
       item.precioUnitario.trim() !== '' ? parseNum(item.precioUnitario) : (product?.unit_price ?? 0)
     const descuento = parseNum(item.descuento)
     const base = Math.max(0, cantidad * precio - descuento)
-    const taxes = (product?.taxes ?? []).map((t) => ({
-      name: t.name,
-      percentage: t.percentage,
-      valor: base * (t.percentage / 100),
-    }))
+    const productTaxes = product?.taxes ?? []
+    let iceValor = 0
+
+    const specificTaxes = productTaxes
+      .filter((t) => t.tax_type === 'ICE' || t.tax_type === 'IRBPNR')
+      .map((t) => {
+        const customRate = item.iceValues?.[t.id]
+        const valor = (customRate !== undefined)
+          ? cantidad * parseNum(customRate)
+          : base * (t.percentage / 100)
+        if (t.tax_type === 'ICE') iceValor += valor
+        return {
+          taxId: t.id,
+          taxType: t.tax_type,
+          name: t.name,
+          percentage: t.percentage,
+          valor,
+        }
+      })
+
+    const ivaTaxes = productTaxes
+      .filter((t) => t.tax_type === 'IVA')
+      .map((t) => {
+        const ivaBase = base + iceValor
+        return {
+          taxId: t.id,
+          taxType: t.tax_type,
+          name: t.name,
+          percentage: t.percentage,
+          valor: ivaBase * (t.percentage / 100),
+        }
+      })
+
+    const taxes = [...specificTaxes, ...ivaTaxes]
     const taxTotal = taxes.reduce((sum, t) => sum + t.valor, 0)
     return { product, cantidad, precio, descuento, base, taxes, taxTotal, total: base + taxTotal }
   })

@@ -42,7 +42,7 @@ export default function InvoicePayments({
         {payments.map((p, index) => {
           const isLast = index === payments.length - 1
           return (
-            <div key={p.key} className="flex items-center gap-2">
+            <div key={p.key} className="animate-fade-in flex items-center gap-2">
               <select
                 value={p.formaPago}
                 onChange={(e) => onUpdate(p.key, { formaPago: e.target.value })}

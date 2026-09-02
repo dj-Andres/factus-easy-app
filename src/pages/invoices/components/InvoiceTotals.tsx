@@ -30,7 +30,7 @@ export default function InvoiceTotals({ subtotal, taxGroups, totalDescuento, tot
         )}
         <div className="flex justify-between border-t border-border-warm pt-2 text-base">
           <dt className="font-semibold text-ink">Total</dt>
-          <dd className="font-mono font-bold text-ink">{formatPrice(total)}</dd>
+          <dd key={total} className="animate-highlight rounded font-mono font-bold text-ink">{formatPrice(total)}</dd>
         </div>
       </dl>
     </div>

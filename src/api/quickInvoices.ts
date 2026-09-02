@@ -37,3 +37,11 @@ export async function sendQuickInvoice(id: number, ruc: string): Promise<QuickIn
   const res = await apiClient.post<ApiResponse<QuickInvoice>>(`/document/quick-invoice/${id}/send`, { ruc })
   return res.data.data
 }
+
+export async function downloadRide(accessKey: string, ruc: string): Promise<Blob> {
+  const res = await apiClient.get<Blob>(`/document/${accessKey}/ride`, {
+    params: { ruc },
+    responseType: 'blob',
+  })
+  return res.data
+}

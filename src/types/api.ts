@@ -358,6 +358,7 @@ export interface QuickInvoice {
   document_type: DocumentTypeCode
   document_id: number | null
   document_status: string | null
+  access_key: string | null
   status: string
   items?: QuickInvoiceItem[]
   created_at: string
@@ -371,6 +372,7 @@ export interface QuickInvoiceItemInput {
   precioUnitario?: number
   descuento?: number
   detallesAdicionales?: AdditionalDetail[]
+  iceValues?: Record<number, number>
 }
 
 export interface QuickInvoiceInput {

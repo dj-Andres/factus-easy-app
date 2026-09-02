@@ -49,7 +49,7 @@ export default function InvoiceFooter({
         {additionalInfo.length === 0 && <p className="text-[12px] text-faint">Sin información adicional</p>}
         <div className="space-y-2">
           {additionalInfo.map((row, index) => (
-            <div key={index} className="flex items-center gap-2">
+            <div key={index} className="animate-fade-in flex items-center gap-2">
               <input
                 type="text"
                 value={row.clave}

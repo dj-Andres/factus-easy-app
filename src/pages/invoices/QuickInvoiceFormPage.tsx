@@ -29,7 +29,7 @@ import {
   type FormPayment,
   type InfoRow,
 } from './invoiceForm'
-import type { Product, QuickInvoiceInput } from '../../types/api'
+import type { Product, QuickInvoiceInput, TaxDetail } from '../../types/api'
 
 const paymentMethods = paymentMethodsJson as { code: string; name: string }[]
 
@@ -44,12 +44,23 @@ function todayDisplay(): string {
   return `${dd}/${mm}/${d.getFullYear()}`
 }
 
+function rebuildIceValues(impuestos: TaxDetail[] | null): Record<number, string> | undefined {
+  if (!impuestos) return undefined
+  const result: Record<number, string> = {}
+  for (const tax of impuestos) {
+    if ((tax.codigo === '3' || tax.codigo === '5') && tax.tarifa > 0) {
+      result[tax.sri_tax_id] = String(tax.tarifa)
+    }
+  }
+  return Object.keys(result).length > 0 ? result : undefined
+}
+
 export default function QuickInvoiceFormPage() {
   const { id } = useParams()
   const location = useLocation()
   const navigate = useNavigate()
   const selectedRuc = useAuthStore((state) => state.selectedRuc)
-  const { selectedCompany } = useCompany()
+  const { selectedCompany, isLoading: companyLoading } = useCompany()
 
   const invoiceId = id ? Number(id) : null
   const mode: 'create' | 'edit' | 'view' = invoiceId
@@ -80,7 +91,7 @@ export default function QuickInvoiceFormPage() {
   const [apiError, setApiError] = useState<string | null>(null)
   const [showSendConfirm, setShowSendConfirm] = useState(false)
 
-  const { data: emissionPoints } = useEmissionPoints(selectedRuc, establishmentId || undefined)
+  const { data: emissionPoints, isPending: emissionPointsLoading } = useEmissionPoints(selectedRuc, establishmentId || undefined)
 
   const productsQuery = useQuery({
     queryKey: ['products', 'all', selectedRuc],
@@ -119,6 +130,7 @@ export default function QuickInvoiceFormPage() {
         cantidad: String(i.cantidad),
         precioUnitario: i.precio_unitario != null ? String(i.precio_unitario) : '',
         descuento: i.descuento ? String(i.descuento) : '',
+        iceValues: rebuildIceValues(i.impuestos),
       })),
     )
     const stored = invoice.formas_pago && invoice.formas_pago.length > 0
@@ -215,12 +227,22 @@ export default function QuickInvoiceFormPage() {
       emission_point_id: Number(emissionPointId),
       customer_id: Number(customerId),
       items: validItems.map((i) => {
+        const product = productsById.get(Number(i.productId))
+        const resolvedPrecio = i.precioUnitario.trim() !== ''
+          ? parseNum(i.precioUnitario)
+          : (product?.unit_price ?? 0)
         const item: QuickInvoiceInput['items'][number] = {
           product_id: Number(i.productId),
           cantidad: parseNum(i.cantidad),
+          precioUnitario: resolvedPrecio,
         }
-        if (i.precioUnitario.trim() !== '') item.precioUnitario = parseNum(i.precioUnitario)
         if (parseNum(i.descuento) > 0) item.descuento = parseNum(i.descuento)
+        const iceMap: Record<number, number> = {}
+        for (const [taxId, val] of Object.entries(i.iceValues ?? {})) {
+          const num = parseNum(val)
+          if (num > 0) iceMap[Number(taxId)] = num
+        }
+        if (Object.keys(iceMap).length > 0) item.iceValues = iceMap
         return item
       }),
       formas_pago: resolvedPayments,
@@ -248,13 +270,27 @@ export default function QuickInvoiceFormPage() {
   const handleSend = () => {
     if (!selectedRuc || !invoiceId) return
     setApiError(null)
-    sendMutation.mutate(
-      { id: invoiceId, ruc: selectedRuc },
-      {
-        onSuccess: () => navigate('/quick-invoices'),
+
+    const doSend = () =>
+      sendMutation.mutate(
+        { id: invoiceId, ruc: selectedRuc },
+        {
+          onSuccess: () => navigate('/quick-invoices'),
+          onError: (err) => setApiError(toErrorMessage(err)),
+        },
+      )
+
+    if (mode === 'edit') {
+      const payload = buildPayload()
+      if (!payload) return
+      updateMutation.mutate({ id: invoiceId, data: payload }, {
+        onSuccess: doSend,
         onError: (err) => setApiError(toErrorMessage(err)),
-      },
-    )
+      })
+      return
+    }
+
+    doSend()
   }
 
   const handleSaveAndSend = () => {
@@ -278,16 +314,34 @@ export default function QuickInvoiceFormPage() {
   const addItem = () => {
     setItems((prev) => [
       ...prev,
-      { key: nextItemKey(), productId: '', cantidad: '1', precioUnitario: '', descuento: '' },
+      { key: nextItemKey(), productId: '', cantidad: '1', precioUnitario: '', descuento: '', iceValues: {} },
     ])
   }
 
   const updateItem = (key: string, patch: Partial<FormItem>) => {
-    setItems((prev) => prev.map((i) => (i.key === key ? { ...i, ...patch } : i)))
+    setItems((prev) => prev.map((i) => {
+      if (i.key !== key) return i
+      const next = { ...i, ...patch }
+      if ('productId' in patch && patch.productId && next.precioUnitario.trim() === '') {
+        const product = productsById.get(Number(patch.productId))
+        if (product) next.precioUnitario = String(product.unit_price)
+      }
+      return next
+    }))
   }
 
   const removeItem = (key: string) => {
     setItems((prev) => prev.filter((i) => i.key !== key))
+  }
+
+  const handleIceChange = (itemKey: string, taxId: number, value: string) => {
+    setItems((prev) =>
+      prev.map((i) => {
+        if (i.key !== itemKey) return i
+        const current = i.iceValues ?? {}
+        return { ...i, iceValues: { ...current, [taxId]: value } }
+      }),
+    )
   }
 
   const addPayment = () => {
@@ -312,7 +366,15 @@ export default function QuickInvoiceFormPage() {
 
   const busy = createMutation.isPending || updateMutation.isPending || sendMutation.isPending
 
-  if (invoiceId && invoiceLoading) {
+  const isInitialLoading =
+    companyLoading ||
+    establishmentsLoading ||
+    emissionPointsLoading ||
+    productsQuery.isPending ||
+    customersQuery.isPending ||
+    (invoiceId !== null && invoiceLoading)
+
+  if (isInitialLoading) {
     return (
       <div className="flex items-center justify-center py-24">
         <Spinner size="lg" color="info" />
@@ -365,10 +427,10 @@ export default function QuickInvoiceFormPage() {
         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center">
           {mode === 'create' && (
             <>
-              <Button type="button" color="gray" onClick={handleSave} disabled={busy}>
+              <Button type="button" color="gray" onClick={handleSave} disabled={busy} className="active:scale-[0.98]">
                 Guardar
               </Button>
-              <Button type="button" color="blue" onClick={handleSaveAndSend} disabled={busy}>
+              <Button type="button" color="blue" onClick={handleSaveAndSend} disabled={busy} className="active:scale-[0.98]">
                 {sendMutation.isPending && <Spinner size="sm" className="mr-2" />}
                 Guardar y Enviar
               </Button>
@@ -376,11 +438,11 @@ export default function QuickInvoiceFormPage() {
           )}
           {mode === 'edit' && (
             <>
-              <Button type="button" color="gray" onClick={handleSave} disabled={busy}>
+              <Button type="button" color="gray" onClick={handleSave} disabled={busy} className="active:scale-[0.98]">
                 {updateMutation.isPending && <Spinner size="sm" className="mr-2" />}
                 Guardar cambios
               </Button>
-              <Button type="button" color="blue" onClick={() => setShowSendConfirm(true)} disabled={busy}>
+              <Button type="button" color="blue" onClick={() => setShowSendConfirm(true)} disabled={busy} className="active:scale-[0.98]">
                 {sendMutation.isPending && <Spinner size="sm" className="mr-2" />}
                 Enviar
               </Button>
@@ -395,12 +457,12 @@ export default function QuickInvoiceFormPage() {
       </div>
 
       {apiError && (
-        <Alert color="red" onDismiss={() => setApiError(null)}>
+        <Alert color="red" onDismiss={() => setApiError(null)} className="animate-slide-down">
           {apiError}
         </Alert>
       )}
 
-      <div className="overflow-hidden rounded-lg border border-border-warm bg-surface shadow-card">
+      <div className="animate-fade-up overflow-hidden rounded-lg border border-border-warm bg-surface shadow-card">
         <InvoiceHeader
           companyName={companyName}
           companyMonogram={companyMonogram}
@@ -443,6 +505,7 @@ export default function QuickInvoiceFormPage() {
           onAdd={addItem}
           onUpdate={updateItem}
           onRemove={removeItem}
+          onIceChange={handleIceChange}
         />
 
         <InvoiceTotals

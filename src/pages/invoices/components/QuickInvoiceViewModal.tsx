@@ -1,7 +1,9 @@
 import { Button, Modal, ModalBody, ModalFooter, ModalHeader, Spinner } from 'flowbite-react'
+import { useState } from 'react'
 import { useCompany } from '../../../hooks/useCompany'
 import { useQuickInvoice } from '../../../hooks/useQuickInvoices'
 import { formatPrice } from '../../../lib/documents'
+import { downloadRide } from '../../../api/quickInvoices'
 import { quickInvoiceStatusLabel, quickInvoiceStatusTone } from '../../../lib/quickInvoices'
 import Badge from '../../../components/ui/Badge'
 import InvoiceHeader from './InvoiceHeader'
@@ -16,6 +18,8 @@ interface QuickInvoiceViewModalProps {
 }
 
 function formatShortDate(value: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value)
+  if (m) return `${m[3]}/${m[2]}/${m[1]}`
   const d = new Date(value)
   if (Number.isNaN(d.getTime())) return value
   const dd = String(d.getDate()).padStart(2, '0')
@@ -37,29 +41,41 @@ function computeItem(item: QuickInvoiceItem) {
   return { base, descuento, totalConImpuestos, taxes }
 }
 
-function groupTaxes(items: QuickInvoiceItem[]) {
-  const map = new Map<string, { key: string; name: string; valor: number }>()
-  for (const item of items) {
-    for (const t of item.impuestos ?? []) {
-      const key = `${t.codigo}-${t.tarifa}`
-      const existing = map.get(key)
-      if (existing) {
-        existing.valor += t.valor
-      } else {
-        map.set(key, { key, name: `${t.codigo} ${t.tarifa}%`, valor: t.valor })
-      }
-    }
-  }
-  return [...map.values()]
-}
+
 
 export default function QuickInvoiceViewModal({ invoiceId, onClose }: QuickInvoiceViewModalProps) {
   const { selectedRuc, selectedCompany } = useCompany()
   const { data: invoice, isPending } = useQuickInvoice(selectedRuc, invoiceId)
+  const [downloading, setDownloading] = useState(false)
+  const [downloadError, setDownloadError] = useState<string | null>(null)
 
   const companyName = selectedCompany?.business_name || selectedCompany?.name || 'Empresa'
   const companyMonogram = companyName.trim().charAt(0).toUpperCase()
   const contact = [selectedCompany?.phone, selectedCompany?.email].filter(Boolean).join(' · ')
+
+  const canDownloadRide =
+    !!invoice && invoice.document_status === 'AUTHORIZED' && !!invoice.access_key
+
+  const handleDownloadRide = async () => {
+    if (!invoice?.access_key || !selectedRuc) return
+    setDownloading(true)
+    setDownloadError(null)
+    try {
+      const blob = await downloadRide(invoice.access_key, selectedRuc)
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `RIDE_${invoice.access_key}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+    } catch {
+      setDownloadError('No se pudo descargar el RIDE.')
+    } finally {
+      setDownloading(false)
+    }
+  }
 
   return (
     <Modal
@@ -148,6 +164,13 @@ export default function QuickInvoiceViewModal({ invoiceId, onClose }: QuickInvoi
         )}
       </ModalBody>
       <ModalFooter className="border-border-warm">
+        {downloadError && <span className="text-sm text-danger">{downloadError}</span>}
+        {canDownloadRide && (
+          <Button type="button" color="blue" onClick={handleDownloadRide} disabled={downloading}>
+            {downloading && <Spinner size="sm" className="mr-2" />}
+            Descargar RIDE
+          </Button>
+        )}
         <Button type="button" color="gray" onClick={onClose}>
           Cerrar
         </Button>
@@ -206,41 +229,73 @@ function InvoiceViewTotals({
   invoice: { total_sin_impuestos: number | null; total_impuestos: number | null; total_descuento: number | null; total: number | null }
 }) {
   const computed = items.map(computeItem)
-  const subtotal =
+  const baseImponible =
     invoice.total_sin_impuestos ?? computed.reduce((s, c) => s + c.base, 0)
+  const subtotalIva = items.reduce((s, item) => {
+    const c = computeItem(item)
+    const hasIva = (item.impuestos ?? []).some((t) => t.codigo === '2' && t.tarifa > 0)
+    return hasIva ? s + c.base : s
+  }, 0)
+  const subtotalCero = items.reduce((s, item) => {
+    const c = computeItem(item)
+    const hasIva = (item.impuestos ?? []).some((t) => t.codigo === '2' && t.tarifa > 0)
+    return hasIva ? s : s + c.base
+  }, 0)
   const totalDescuento =
     invoice.total_descuento ?? computed.reduce((s, c) => s + c.descuento, 0)
+  const iva = items.reduce(
+    (s, item) => s + (item.impuestos ?? []).filter((t) => t.codigo === '2').reduce((a, t) => a + t.valor, 0),
+    0,
+  )
+  const ice = items.reduce(
+    (s, item) => s + (item.impuestos ?? []).filter((t) => t.codigo === '3').reduce((a, t) => a + t.valor, 0),
+    0,
+  )
+  const irbpnr = items.reduce(
+    (s, item) => s + (item.impuestos ?? []).filter((t) => t.codigo === '5').reduce((a, t) => a + t.valor, 0),
+    0,
+  )
   const total = invoice.total ?? computed.reduce((s, c) => s + c.totalConImpuestos, 0)
-  const taxGroups = groupTaxes(items)
 
   return (
     <div className="flex justify-end p-6">
       <dl className="w-full max-w-xs space-y-2 text-[13px]">
         <div className="flex justify-between">
-          <dt className="text-muted">Subtotal</dt>
-          <dd className="font-mono text-ink">{formatPrice(subtotal)}</dd>
+          <dt className="text-muted">Base imponible</dt>
+          <dd className="font-mono text-ink">{formatPrice(baseImponible)}</dd>
         </div>
-        {taxGroups.length > 0
-          ? taxGroups.map((g) => (
-              <div key={g.key} className="flex justify-between">
-                <dt className="text-muted">{g.name}</dt>
-                <dd className="font-mono text-ink">{formatPrice(g.valor)}</dd>
-              </div>
-            ))
-          : invoice.total_impuestos != null && (
-              <div className="flex justify-between">
-                <dt className="text-muted">Impuestos</dt>
-                <dd className="font-mono text-ink">{formatPrice(invoice.total_impuestos)}</dd>
-              </div>
-            )}
+        <div className="flex justify-between">
+          <dt className="text-muted">Subtotal IVA</dt>
+          <dd className="font-mono text-ink">{formatPrice(subtotalIva)}</dd>
+        </div>
+        <div className="flex justify-between">
+          <dt className="text-muted">Subtotal 0</dt>
+          <dd className="font-mono text-ink">{formatPrice(subtotalCero)}</dd>
+        </div>
         {totalDescuento > 0 && (
           <div className="flex justify-between">
             <dt className="text-muted">Descuento</dt>
             <dd className="font-mono text-ink">-{formatPrice(totalDescuento)}</dd>
           </div>
         )}
+        {ice > 0 && (
+          <div className="flex justify-between">
+            <dt className="text-muted">ICE</dt>
+            <dd className="font-mono text-ink">{formatPrice(ice)}</dd>
+          </div>
+        )}
+        {irbpnr > 0 && (
+          <div className="flex justify-between">
+            <dt className="text-muted">IRBPNR</dt>
+            <dd className="font-mono text-ink">{formatPrice(irbpnr)}</dd>
+          </div>
+        )}
+        <div className="flex justify-between">
+          <dt className="text-muted">IVA</dt>
+          <dd className="font-mono text-ink">{formatPrice(iva)}</dd>
+        </div>
         <div className="flex justify-between border-t border-border-warm pt-2 text-base">
-          <dt className="font-semibold text-ink">Total</dt>
+          <dt className="font-semibold text-ink">Valor total</dt>
           <dd className="font-mono font-bold text-ink">{formatPrice(total)}</dd>
         </div>
       </dl>
