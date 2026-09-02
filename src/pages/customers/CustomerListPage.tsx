@@ -3,6 +3,9 @@ import { Alert, Button, Spinner, Table, TableBody, TableCell, TableHead, TableHe
 import { useAuthStore } from '../../stores/authStore'
 import { useCustomers, useDeleteCustomer } from '../../hooks/useCustomers'
 import ConfirmModal from '../../components/ui/ConfirmModal'
+import TablePagination from '../../components/ui/TablePagination'
+import SortableTh from '../../components/ui/SortableTh'
+import { useColumnSort } from '../../hooks/useColumnSort'
 import type { Customer } from '../../types/api'
 import CustomerFormPage from './CustomerFormPage'
 import { IDENTIFICATION_TYPES } from './constants'
@@ -22,6 +25,7 @@ export default function CustomerListPage() {
     const timeout = setTimeout(() => {
       setSearch(searchInput)
       setPage(1)
+      resetSort()
     }, 300)
     return () => clearTimeout(timeout)
   }, [searchInput])
@@ -36,6 +40,25 @@ export default function CustomerListPage() {
   const customers = data?.data ?? []
   const lastPage = data?.last_page ?? 1
   const total = data?.total ?? 0
+
+  const sortValue = (customer: Customer, key: string): string | number | null | undefined => {
+    switch (key) {
+      case 'name':
+        return customer.name
+      case 'identification':
+        return customer.identification_number ?? ''
+      case 'email':
+        return customer.email ?? ''
+      case 'phone':
+        return customer.phone ?? ''
+      default:
+        return undefined
+    }
+  }
+  const { sortedRows: sortedCustomers, toggle: toggleSort, reset: resetSort, indicator } = useColumnSort(
+    customers,
+    sortValue,
+  )
 
   const handleDelete = (customer: Customer) => {
     deleteMutation.mutate(customer.id)
@@ -119,15 +142,15 @@ export default function CustomerListPage() {
             <Table hoverable>
               <TableHead>
                 <TableRow>
-                  <TableHeadCell>Nombre</TableHeadCell>
-                  <TableHeadCell>Identificación</TableHeadCell>
-                  <TableHeadCell>Email</TableHeadCell>
-                  <TableHeadCell>Teléfono</TableHeadCell>
+                  <SortableTh label="Nombre" onClick={() => toggleSort('name')} indicator={indicator('name')} />
+                  <SortableTh label="Identificación" onClick={() => toggleSort('identification')} indicator={indicator('identification')} />
+                  <SortableTh label="Email" onClick={() => toggleSort('email')} indicator={indicator('email')} />
+                  <SortableTh label="Teléfono" onClick={() => toggleSort('phone')} indicator={indicator('phone')} />
                   <TableHeadCell className="w-32 text-right">Acciones</TableHeadCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {customers.map((customer) => (
+                {sortedCustomers.map((customer) => (
                   <TableRow key={customer.id} className="bg-surface">
                     <TableCell className="font-medium text-ink">
                       {customer.name}
@@ -171,29 +194,7 @@ export default function CustomerListPage() {
         </div>
 
         {!isPending && customers.length > 0 && (
-          <div className="flex items-center justify-between border-t border-border-warm px-4 py-3">
-            <span className="text-[12px] text-faint">
-              Página {page} de {lastPage}
-            </span>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                disabled={page <= 1}
-                onClick={() => setPage((p) => p - 1)}
-                className="rounded-md border border-border-warm px-3 py-1.5 text-[13px] font-medium text-muted transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Anterior
-              </button>
-              <button
-                type="button"
-                disabled={page >= lastPage}
-                onClick={() => setPage((p) => p + 1)}
-                className="rounded-md border border-border-warm px-3 py-1.5 text-[13px] font-medium text-muted transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Siguiente
-              </button>
-            </div>
-          </div>
+          <TablePagination page={page} lastPage={lastPage} onPageChange={(p) => setPage(p)} />
         )}
       </div>
 

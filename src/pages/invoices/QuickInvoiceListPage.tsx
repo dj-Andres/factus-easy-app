@@ -7,6 +7,9 @@ import { quickInvoiceStatusLabel, quickInvoiceStatusTone } from '../../lib/quick
 import { formatDate, formatPrice } from '../../lib/documents'
 import Badge from '../../components/ui/Badge'
 import ConfirmModal from '../../components/ui/ConfirmModal'
+import TablePagination from '../../components/ui/TablePagination'
+import SortableTh from '../../components/ui/SortableTh'
+import { useColumnSort } from '../../hooks/useColumnSort'
 import QuickInvoiceViewModal from './components/QuickInvoiceViewModal'
 import type { QuickInvoice } from '../../types/api'
 
@@ -36,6 +39,7 @@ export default function QuickInvoiceListPage() {
     const timeout = setTimeout(() => {
       setSearch(searchInput)
       setPage(1)
+      resetSort()
     }, 300)
     return () => clearTimeout(timeout)
   }, [searchInput])
@@ -53,6 +57,27 @@ export default function QuickInvoiceListPage() {
   const invoices = data?.data ?? []
   const lastPage = data?.last_page ?? 1
   const total = data?.total ?? 0
+
+  const sortValue = (inv: QuickInvoice, key: string): string | number | null | undefined => {
+    switch (key) {
+      case 'comprobante':
+        return `${inv.series}-${inv.sequential}`
+      case 'customer':
+        return inv.customer_name ?? ''
+      case 'date':
+        return inv.emission_date ?? ''
+      case 'status':
+        return inv.status
+      case 'total':
+        return inv.total ?? 0
+      default:
+        return undefined
+    }
+  }
+  const { sortedRows: sortedInvoices, toggle: toggleSort, reset: resetSort, indicator } = useColumnSort(
+    invoices,
+    sortValue,
+  )
 
   const handleSend = (invoice: QuickInvoice) => {
     if (!selectedRuc) return
@@ -98,6 +123,7 @@ export default function QuickInvoiceListPage() {
               onChange={(e) => {
                 setStatus(e.target.value)
                 setPage(1)
+                resetSort()
               }}
               className="rounded-md border border-border-warm bg-canvas px-2 py-2 text-[13px] text-ink focus:border-accent focus:outline-none"
             >
@@ -113,6 +139,7 @@ export default function QuickInvoiceListPage() {
               onChange={(e) => {
                 setFrom(e.target.value)
                 setPage(1)
+                resetSort()
               }}
               className="rounded-md border border-border-warm bg-canvas px-2 py-2 text-[13px] text-ink focus:border-accent focus:outline-none"
             />
@@ -123,6 +150,7 @@ export default function QuickInvoiceListPage() {
               onChange={(e) => {
                 setTo(e.target.value)
                 setPage(1)
+                resetSort()
               }}
               className="rounded-md border border-border-warm bg-canvas px-2 py-2 text-[13px] text-ink focus:border-accent focus:outline-none"
             />
@@ -157,16 +185,16 @@ export default function QuickInvoiceListPage() {
             <Table hoverable>
               <TableHead>
                 <TableRow>
-                  <TableHeadCell>Comprobante</TableHeadCell>
-                  <TableHeadCell>Cliente</TableHeadCell>
-                  <TableHeadCell>Fecha</TableHeadCell>
-                  <TableHeadCell>Estado</TableHeadCell>
-                  <TableHeadCell>Total</TableHeadCell>
+                  <SortableTh label="Comprobante" onClick={() => toggleSort('comprobante')} indicator={indicator('comprobante')} />
+                  <SortableTh label="Cliente" onClick={() => toggleSort('customer')} indicator={indicator('customer')} />
+                  <SortableTh label="Fecha" onClick={() => toggleSort('date')} indicator={indicator('date')} />
+                  <SortableTh label="Estado" onClick={() => toggleSort('status')} indicator={indicator('status')} />
+                  <SortableTh label="Total" onClick={() => toggleSort('total')} indicator={indicator('total')} />
                   <TableHeadCell className="w-40 text-right">Acciones</TableHeadCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {invoices.map((invoice) => (
+                {sortedInvoices.map((invoice) => (
                   <TableRow key={invoice.id} className="bg-surface">
                     <TableCell>
                       <div className="font-mono text-[13px] text-ink">
@@ -226,29 +254,7 @@ export default function QuickInvoiceListPage() {
         </div>
 
         {!isPending && invoices.length > 0 && (
-          <div className="flex items-center justify-between border-t border-border-warm px-4 py-3">
-            <span className="text-[12px] text-faint">
-              Página {page} de {lastPage}
-            </span>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                disabled={page <= 1}
-                onClick={() => setPage((p) => p - 1)}
-                className="rounded-md border border-border-warm px-3 py-1.5 text-[13px] font-medium text-muted transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Anterior
-              </button>
-              <button
-                type="button"
-                disabled={page >= lastPage}
-                onClick={() => setPage((p) => p + 1)}
-                className="rounded-md border border-border-warm px-3 py-1.5 text-[13px] font-medium text-muted transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Siguiente
-              </button>
-            </div>
-          </div>
+          <TablePagination page={page} lastPage={lastPage} onPageChange={(p) => setPage(p)} />
         )}
       </div>
 

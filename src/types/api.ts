@@ -509,6 +509,65 @@ export interface DocumentStatusResult {
   summary: DocumentStatusSummary
 }
 
+// ------------------------------------------------------------
+// Document detail (RIDE-style)
+// ------------------------------------------------------------
+
+export interface RideDetailTax {
+  codigo: string
+  codigoPorcentaje: string
+  baseImponible: number
+  valor: number
+}
+
+export interface RideDetailItem {
+  codigoPrincipal: string
+  codigoAuxiliar?: string
+  descripcion: string
+  cantidad: number
+  precioUnitario: number
+  descuento: number
+  precioTotalSinImpuesto: number
+  detalles_adicionales?: { nombre: string; valor: string }[]
+}
+
+export interface RideDetailPayment {
+  formaPago: string
+  formaPagoLabel?: string
+  total: number
+  plazo?: string
+  unidadTiempo?: string
+}
+
+export interface DocumentRideDetail {
+  tributary_info?: Record<string, string>
+  document_info?: Record<string, string | number>
+  customer_info?: Record<string, string>
+  subject_info?: Record<string, string>
+  items?: RideDetailItem[]
+  taxes?: RideDetailTax[]
+  retention_taxes?: RideDetailTax[]
+  totals?: Record<string, number>
+  ride_totals?: {
+    subtotal_iva: number
+    subtotal_0: number
+    subtotal_no_objeto: number
+    subtotal_sin_impuestos: number
+    descuento: number
+    ice: number
+    iva: number
+    propina: number
+    valor_total: number
+  }
+  payments?: RideDetailPayment[]
+  additional_info?: { name: string; value: string }[]
+}
+
+export interface DocumentDetailResult {
+  document: DocumentStatus
+  ride: DocumentRideDetail
+}
+
 export interface DocumentStatusQuery {
   ruc: string
   tipo?: DocumentTypeCode

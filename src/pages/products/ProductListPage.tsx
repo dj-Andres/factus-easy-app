@@ -3,6 +3,9 @@ import { Alert, Button, Spinner, Table, TableBody, TableCell, TableHead, TableHe
 import { useAuthStore } from '../../stores/authStore'
 import { useDeleteProduct, useProductOptions, useProducts } from '../../hooks/useProducts'
 import ConfirmModal from '../../components/ui/ConfirmModal'
+import TablePagination from '../../components/ui/TablePagination'
+import SortableTh from '../../components/ui/SortableTh'
+import { useColumnSort } from '../../hooks/useColumnSort'
 import type { Product } from '../../types/api'
 import ProductFormPage from './ProductFormPage'
 
@@ -31,6 +34,7 @@ export default function ProductListPage() {
     const timeout = setTimeout(() => {
       setSearch(searchInput)
       setPage(1)
+      resetSort()
     }, 300)
     return () => clearTimeout(timeout)
   }, [searchInput])
@@ -49,6 +53,27 @@ export default function ProductListPage() {
   const products = data?.data ?? []
   const lastPage = data?.last_page ?? 1
   const total = data?.total ?? 0
+
+  const sortValue = (product: Product, key: string): string | number | null | undefined => {
+    switch (key) {
+      case 'description':
+        return product.description
+      case 'kind':
+        return product.product_kind_label ?? product.product_kind ?? ''
+      case 'sri':
+        return product.sri_product_type_label ?? product.sri_product_type ?? ''
+      case 'price':
+        return product.unit_price ?? 0
+      case 'taxes':
+        return product.taxes?.map((tax) => tax.name).join(', ') || ''
+      default:
+        return undefined
+    }
+  }
+  const { sortedRows: sortedProducts, toggle: toggleSort, reset: resetSort, indicator } = useColumnSort(
+    products,
+    sortValue,
+  )
 
   const handleDelete = async (product: Product) => {
     deleteMutation.mutate(product.id)
@@ -109,6 +134,7 @@ export default function ProductListPage() {
               onChange={(e) => {
                 setProductKind(e.target.value)
                 setPage(1)
+                resetSort()
               }}
               className="rounded-md border border-border-warm bg-canvas px-3 py-2 text-[13px] text-ink focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
             >
@@ -125,6 +151,7 @@ export default function ProductListPage() {
               onChange={(e) => {
                 setSriProductType(e.target.value)
                 setPage(1)
+                resetSort()
               }}
               className="rounded-md border border-border-warm bg-canvas px-3 py-2 text-[13px] text-ink focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
             >
@@ -166,16 +193,16 @@ export default function ProductListPage() {
             <Table hoverable>
               <TableHead>
                 <TableRow>
-                  <TableHeadCell>Descripción</TableHeadCell>
-                  <TableHeadCell>Tipo</TableHeadCell>
-                  <TableHeadCell>Tipo SRI</TableHeadCell>
-                  <TableHeadCell>Precio</TableHeadCell>
-                  <TableHeadCell>Impuestos</TableHeadCell>
+                  <SortableTh label="Descripción" onClick={() => toggleSort('description')} indicator={indicator('description')} />
+                  <SortableTh label="Tipo" onClick={() => toggleSort('kind')} indicator={indicator('kind')} />
+                  <SortableTh label="Tipo SRI" onClick={() => toggleSort('sri')} indicator={indicator('sri')} />
+                  <SortableTh label="Precio" onClick={() => toggleSort('price')} indicator={indicator('price')} />
+                  <SortableTh label="Impuestos" onClick={() => toggleSort('taxes')} indicator={indicator('taxes')} />
                   <TableHeadCell className="w-32 text-right">Acciones</TableHeadCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {products.map((product) => (
+                {sortedProducts.map((product) => (
                   <TableRow key={product.id} className="bg-surface">
                     <TableCell className="font-medium text-ink">
                       {product.description}
@@ -219,29 +246,7 @@ export default function ProductListPage() {
         </div>
 
         {!isPending && products.length > 0 && (
-          <div className="flex items-center justify-between border-t border-border-warm px-4 py-3">
-            <span className="text-[12px] text-faint">
-              Página {page} de {lastPage}
-            </span>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                disabled={page <= 1}
-                onClick={() => setPage((p) => p - 1)}
-                className="rounded-md border border-border-warm px-3 py-1.5 text-[13px] font-medium text-muted transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Anterior
-              </button>
-              <button
-                type="button"
-                disabled={page >= lastPage}
-                onClick={() => setPage((p) => p + 1)}
-                className="rounded-md border border-border-warm px-3 py-1.5 text-[13px] font-medium text-muted transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Siguiente
-              </button>
-            </div>
-          </div>
+          <TablePagination page={page} lastPage={lastPage} onPageChange={(p) => setPage(p)} />
         )}
       </div>
 

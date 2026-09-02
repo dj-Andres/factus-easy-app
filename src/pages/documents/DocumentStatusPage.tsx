@@ -1,7 +1,17 @@
 import { useState } from 'react'
-import { Alert, Spinner, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from 'flowbite-react'
+import {
+  Alert,
+  Spinner,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeadCell,
+  TableRow,
+} from 'flowbite-react'
 import { useAuthStore } from '../../stores/authStore'
 import { useDocumentStatus } from '../../hooks/useDocuments'
+import { downloadDocumentRide, downloadDocumentXml } from '../../api/documents'
 import {
   DOCUMENT_STATUS_LABELS,
   DOCUMENT_TYPE_LABELS,
@@ -9,6 +19,9 @@ import {
   statusBadgeClass,
 } from '../../lib/documents'
 import Badge from '../../components/ui/Badge'
+import TablePagination from '../../components/ui/TablePagination'
+import SortableTh from '../../components/ui/SortableTh'
+import { useColumnSort } from '../../hooks/useColumnSort'
 import type { DocumentStatus, DocumentStatusCode, DocumentTypeCode } from '../../types/api'
 import DocumentDetailModal from './DocumentDetailModal'
 
@@ -22,15 +35,30 @@ const STATUSES: DocumentStatusCode[] = [
   'RETURNED',
 ]
 
+async function downloadBlob(blob: Blob, filename: string): Promise<void> {
+  const url = window.URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.URL.revokeObjectURL(url)
+}
+
 export default function DocumentStatusPage() {
   const selectedRuc = useAuthStore((state) => state.selectedRuc)
 
   const [tipo, setTipo] = useState<DocumentTypeCode | ''>('')
   const [status, setStatus] = useState<DocumentStatusCode | ''>('')
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
+  const [dateFrom, setDateFrom] = useState(() => {
+    const now = new Date()
+    return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10)
+  })
+  const [dateTo, setDateTo] = useState(() => new Date().toISOString().slice(0, 10))
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState<DocumentStatus | null>(null)
+  const [downloadingKey, setDownloadingKey] = useState<string | null>(null)
 
   const { data, isPending, isFetching, error, refetch } = useDocumentStatus({
     ruc: selectedRuc,
@@ -45,6 +73,42 @@ export default function DocumentStatusPage() {
   const summary = data?.summary
   const pagination = data?.pagination
   const lastPage = pagination?.last_page ?? 1
+
+  const sortValue = (doc: DocumentStatus, key: string): string | number | null | undefined => {
+    switch (key) {
+      case 'type':
+        return doc.document_type
+      case 'series':
+        return `${doc.series}-${doc.sequential}`
+      case 'date':
+        return doc.issue_date ?? ''
+      case 'status':
+        return doc.status
+      case 'authorization':
+        return doc.authorization_number ?? ''
+      default:
+        return undefined
+    }
+  }
+  const { sortedRows: sortedDocs, toggle: handleSort, reset: resetSort, indicator } = useColumnSort(
+    documents,
+    sortValue,
+  )
+
+  const handleDownload = async (doc: DocumentStatus, kind: 'ride' | 'xml') => {
+    if (!selectedRuc || !doc.access_key) return
+    const key = `${kind}-${doc.access_key}`
+    setDownloadingKey(key)
+    try {
+      const blob = kind === 'ride'
+        ? await downloadDocumentRide(doc.access_key, selectedRuc)
+        : await downloadDocumentXml(doc.access_key, selectedRuc)
+      const ext = kind === 'ride' ? 'pdf' : 'xml'
+      await downloadBlob(blob, `${kind.toUpperCase()}_${doc.access_key}.${ext}`)
+    } finally {
+      setDownloadingKey(null)
+    }
+  }
 
   const selectClass =
     'rounded-md border border-border-warm bg-canvas px-3 py-2 text-[13px] text-ink focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20'
@@ -94,6 +158,7 @@ export default function DocumentStatusPage() {
               onChange={(e) => {
                 setTipo(e.target.value as DocumentTypeCode | '')
                 setPage(1)
+                resetSort()
               }}
               className={selectClass}
             >
@@ -111,6 +176,7 @@ export default function DocumentStatusPage() {
               onChange={(e) => {
                 setStatus(e.target.value as DocumentStatusCode | '')
                 setPage(1)
+                resetSort()
               }}
               className={selectClass}
             >
@@ -130,6 +196,7 @@ export default function DocumentStatusPage() {
               onChange={(e) => {
                 setDateFrom(e.target.value)
                 setPage(1)
+                resetSort()
               }}
               className={inputClass}
             />
@@ -142,6 +209,7 @@ export default function DocumentStatusPage() {
               onChange={(e) => {
                 setDateTo(e.target.value)
                 setPage(1)
+                resetSort()
               }}
               className={inputClass}
             />
@@ -167,16 +235,16 @@ export default function DocumentStatusPage() {
             <Table hoverable>
               <TableHead>
                 <TableRow>
-                  <TableHeadCell>Tipo</TableHeadCell>
-                  <TableHeadCell>Serie</TableHeadCell>
-                  <TableHeadCell>Fecha</TableHeadCell>
-                  <TableHeadCell>Estado</TableHeadCell>
-                  <TableHeadCell>Autorización</TableHeadCell>
+                  <SortableTh label="Tipo" onClick={() => handleSort('type')} indicator={indicator('type')} />
+                  <SortableTh label="Serie" onClick={() => handleSort('series')} indicator={indicator('series')} />
+                  <SortableTh label="Fecha" onClick={() => handleSort('date')} indicator={indicator('date')} />
+                  <SortableTh label="Estado" onClick={() => handleSort('status')} indicator={indicator('status')} />
+                  <SortableTh label="Autorización" onClick={() => handleSort('authorization')} indicator={indicator('authorization')} />
                   <TableHeadCell className="text-right">Acciones</TableHeadCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {documents.map((doc) => (
+                {sortedDocs.map((doc) => (
                   <TableRow key={doc.id} className="bg-surface">
                     <TableCell>
                       <Badge tone={doc.document_type === '01' ? 'violet' : 'blue'}>
@@ -196,7 +264,7 @@ export default function DocumentStatusPage() {
                       {doc.authorization_number ?? '—'}
                     </TableCell>
                     <TableCell>
-                      <div className="flex justify-end">
+                      <div className="flex justify-end gap-2">
                         <button
                           type="button"
                           onClick={() => setSelected(doc)}
@@ -204,6 +272,28 @@ export default function DocumentStatusPage() {
                         >
                           Ver detalle
                         </button>
+                        {doc.access_key && (
+                          <>
+                            {doc.status === 'AUTHORIZED' && (
+                              <button
+                                type="button"
+                                disabled={downloadingKey === `ride-${doc.access_key}`}
+                                onClick={() => handleDownload(doc, 'ride')}
+                                className="rounded-md px-2 py-1 text-[13px] font-medium text-muted transition-colors duration-150 hover:bg-surface-2 disabled:opacity-50"
+                              >
+                                {downloadingKey === `ride-${doc.access_key}` ? 'Descargando…' : 'RIDE'}
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              disabled={downloadingKey === `xml-${doc.access_key}`}
+                              onClick={() => handleDownload(doc, 'xml')}
+                              className="rounded-md px-2 py-1 text-[13px] font-medium text-muted transition-colors duration-150 hover:bg-surface-2 disabled:opacity-50"
+                            >
+                              {downloadingKey === `xml-${doc.access_key}` ? 'Descargando…' : 'XML'}
+                            </button>
+                          </>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -214,29 +304,7 @@ export default function DocumentStatusPage() {
         </div>
 
         {!isPending && documents.length > 0 && (
-          <div className="flex items-center justify-between border-t border-border-warm px-4 py-3">
-            <span className="text-[12px] text-faint">
-              Página {page} de {lastPage}
-            </span>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                disabled={page <= 1}
-                onClick={() => setPage((p) => p - 1)}
-                className="rounded-md border border-border-warm px-3 py-1.5 text-[13px] font-medium text-muted transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Anterior
-              </button>
-              <button
-                type="button"
-                disabled={page >= lastPage}
-                onClick={() => setPage((p) => p + 1)}
-                className="rounded-md border border-border-warm px-3 py-1.5 text-[13px] font-medium text-muted transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Siguiente
-              </button>
-            </div>
-          </div>
+          <TablePagination page={page} lastPage={lastPage} onPageChange={(p) => setPage(p)} />
         )}
       </div>
 

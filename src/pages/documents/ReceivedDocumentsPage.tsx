@@ -6,6 +6,9 @@ import { downloadReceivedRide, downloadReceivedXml } from '../../api/receivedDoc
 import { toErrorMessage } from '../../lib/errors'
 import { DOCUMENT_TYPE_LABELS, formatDate, formatPrice } from '../../lib/documents'
 import Badge from '../../components/ui/Badge'
+import TablePagination from '../../components/ui/TablePagination'
+import SortableTh from '../../components/ui/SortableTh'
+import { useColumnSort } from '../../hooks/useColumnSort'
 import type { ReceivedDocument } from '../../types/api'
 
 export default function ReceivedDocumentsPage() {
@@ -34,6 +37,27 @@ export default function ReceivedDocumentsPage() {
   const documents = data?.documents ?? []
   const lastPage = data?.pagination.last_page ?? 1
   const total = data?.pagination.total ?? 0
+
+  const sortValue = (doc: ReceivedDocument, key: string): string | number | null | undefined => {
+    switch (key) {
+      case 'issuer':
+        return doc.issuer_business_name ?? doc.issuer_ruc
+      case 'type':
+        return doc.sri_document_code
+      case 'accessKey':
+        return doc.access_key
+      case 'date':
+        return doc.issued_on ?? ''
+      case 'total':
+        return doc.total_amount ?? 0
+      default:
+        return undefined
+    }
+  }
+  const { sortedRows: sortedDocuments, toggle: toggleSort, reset: resetSort, indicator } = useColumnSort(
+    documents,
+    sortValue,
+  )
 
   const handleUpload = () => {
     if (!selectedRuc || !file) return
@@ -113,6 +137,7 @@ export default function ReceivedDocumentsPage() {
               onChange={(e) => {
                 setSriDocumentCode(e.target.value)
                 setPage(1)
+                resetSort()
               }}
               className={inputClass}
             >
@@ -172,16 +197,16 @@ export default function ReceivedDocumentsPage() {
             <Table hoverable>
               <TableHead>
                 <TableRow>
-                  <TableHeadCell>Emisor</TableHeadCell>
-                  <TableHeadCell>Tipo</TableHeadCell>
-                  <TableHeadCell>Clave de acceso</TableHeadCell>
-                  <TableHeadCell>Fecha</TableHeadCell>
-                  <TableHeadCell>Total</TableHeadCell>
+                  <SortableTh label="Emisor" onClick={() => toggleSort('issuer')} indicator={indicator('issuer')} />
+                  <SortableTh label="Tipo" onClick={() => toggleSort('type')} indicator={indicator('type')} />
+                  <SortableTh label="Clave de acceso" onClick={() => toggleSort('accessKey')} indicator={indicator('accessKey')} />
+                  <SortableTh label="Fecha" onClick={() => toggleSort('date')} indicator={indicator('date')} />
+                  <SortableTh label="Total" onClick={() => toggleSort('total')} indicator={indicator('total')} />
                   <TableHeadCell className="text-right">Acciones</TableHeadCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {documents.map((doc) => (
+                {sortedDocuments.map((doc) => (
                   <TableRow key={doc.id} className="bg-surface">
                     <TableCell>
                       <div className="text-[13px] font-medium text-ink">{doc.issuer_business_name ?? doc.issuer_ruc}</div>
@@ -227,29 +252,7 @@ export default function ReceivedDocumentsPage() {
         </div>
 
         {!isPending && documents.length > 0 && (
-          <div className="flex items-center justify-between border-t border-border-warm px-4 py-3">
-            <span className="text-[12px] text-faint">
-              Página {page} de {lastPage}
-            </span>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                disabled={page <= 1}
-                onClick={() => setPage((p) => p - 1)}
-                className="rounded-md border border-border-warm px-3 py-1.5 text-[13px] font-medium text-muted transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Anterior
-              </button>
-              <button
-                type="button"
-                disabled={page >= lastPage}
-                onClick={() => setPage((p) => p + 1)}
-                className="rounded-md border border-border-warm px-3 py-1.5 text-[13px] font-medium text-muted transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Siguiente
-              </button>
-            </div>
-          </div>
+          <TablePagination page={page} lastPage={lastPage} onPageChange={(p) => setPage(p)} />
         )}
       </div>
     </div>
