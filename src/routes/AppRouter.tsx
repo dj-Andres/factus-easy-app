@@ -17,6 +17,7 @@ import QuickInvoiceListPage from '../pages/invoices/QuickInvoiceListPage'
 import QuickCreditNoteFormPage from '../pages/credit-notes/QuickCreditNoteFormPage'
 import QuickCreditNoteListPage from '../pages/credit-notes/QuickCreditNoteListPage'
 import ProductListPage from '../pages/products/ProductListPage'
+import TransporterListPage from '../pages/transporters/TransporterListPage'
 import GuestRoute from './GuestRoute'
 import ProtectedRoute from './ProtectedRoute'
 
@@ -32,6 +33,7 @@ export default function AppRouter() {
         <Route element={<DashboardLayout />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/customers" element={<CustomerListPage />} />
+          <Route path="/transporters" element={<TransporterListPage />} />
           <Route path="/products" element={<ProductListPage />} />
           <Route path="/quick-invoices" element={<QuickInvoiceListPage />} />
           <Route path="/quick-invoices/new" element={<QuickInvoiceFormPage />} />

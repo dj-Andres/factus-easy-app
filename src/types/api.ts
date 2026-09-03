@@ -211,6 +211,36 @@ export interface CustomerInput {
 }
 
 // ------------------------------------------------------------
+// Transporters
+// ------------------------------------------------------------
+
+export interface Transporter {
+  id: number
+  company_id: number
+  ruc: string
+  identification_type: IdentificationType
+  identification_number: string
+  name: string
+  phone: string | null
+  address: string | null
+  placa: string
+  rise: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface TransporterInput {
+  ruc: string
+  identification_type: IdentificationType
+  identification_number: string
+  name: string
+  phone?: string
+  address?: string
+  placa: string
+  rise?: string
+}
+
+// ------------------------------------------------------------
 // Products & taxes
 // ------------------------------------------------------------
 

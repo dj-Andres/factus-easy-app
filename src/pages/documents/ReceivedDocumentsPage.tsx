@@ -20,8 +20,11 @@ export default function ReceivedDocumentsPage() {
 
   const [sriDocumentCode, setSriDocumentCode] = useState('')
   const [issuerRuc, setIssuerRuc] = useState('')
-  const [issuedFrom, setIssuedFrom] = useState('')
-  const [issuedTo, setIssuedTo] = useState('')
+  const [issuedFrom, setIssuedFrom] = useState(() => {
+    const now = new Date()
+    return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10)
+  })
+  const [issuedTo, setIssuedTo] = useState(() => new Date().toISOString().slice(0, 10))
   const [page, setPage] = useState(1)
 
   const uploadMutation = useUploadReceivedDocuments()
@@ -153,7 +156,11 @@ export default function ReceivedDocumentsPage() {
             <input
               type="text"
               value={issuerRuc}
-              onChange={(e) => setIssuerRuc(e.target.value)}
+              onChange={(e) => {
+                setIssuerRuc(e.target.value)
+                setPage(1)
+                resetSort()
+              }}
               placeholder="13 dígitos"
               className={inputClass}
             />
@@ -163,7 +170,11 @@ export default function ReceivedDocumentsPage() {
             <input
               type="date"
               value={issuedFrom}
-              onChange={(e) => setIssuedFrom(e.target.value)}
+              onChange={(e) => {
+                setIssuedFrom(e.target.value)
+                setPage(1)
+                resetSort()
+              }}
               className={inputClass}
             />
           </div>
@@ -172,7 +183,11 @@ export default function ReceivedDocumentsPage() {
             <input
               type="date"
               value={issuedTo}
-              onChange={(e) => setIssuedTo(e.target.value)}
+              onChange={(e) => {
+                setIssuedTo(e.target.value)
+                setPage(1)
+                resetSort()
+              }}
               className={inputClass}
             />
           </div>
