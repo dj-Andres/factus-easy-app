@@ -183,105 +183,160 @@ const navGroups: NavGroup[] = [
   },
 ]
 
-export default function AppSidebar() {
-  const { selectedCompany } = useCompany()
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
+interface SidebarProps {
+  collapsed: boolean
+  onToggleCollapsed: () => void
+  mobileOpen: boolean
+  onCloseMobile: () => void
+}
 
-  const toggle = (label: string) =>
-    setCollapsed((prev) => ({ ...prev, [label]: !prev[label] }))
+export default function AppSidebar({ collapsed, onToggleCollapsed, mobileOpen, onCloseMobile }: SidebarProps) {
+  const { selectedCompany } = useCompany()
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({})
+
+  const toggleGroup = (label: string) =>
+    setCollapsedGroups((prev) => ({ ...prev, [label]: !prev[label] }))
+
+  const handleNavigate = () => {
+    if (mobileOpen) onCloseMobile()
+  }
 
   return (
-    <aside className="flex h-screen w-60 shrink-0 flex-col border-r border-border-warm bg-surface">
-      {/* Logo */}
-      <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-border-warm px-5">
-        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-accent font-mono text-sm font-bold text-white">
-          F
-        </span>
-        <span className="text-sm font-semibold tracking-tight text-ink">Factus Easy</span>
-      </div>
+    <>
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/30 lg:hidden"
+          onClick={onCloseMobile}
+          aria-hidden="true"
+        />
+      )}
 
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 py-3">
-        {navGroups.map((group) => {
-          const isCollapsed = collapsed[group.label]
-          return (
-            <div key={group.label} className="mb-1">
-              <button
-                type="button"
-                onClick={() => toggle(group.label)}
-                className="flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-faint transition-colors duration-150 hover:text-muted"
-              >
-                <span>{group.label}</span>
-                <svg
-                  className={`h-3.5 w-3.5 transition-transform duration-200 ${isCollapsed ? '-rotate-90' : ''}`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex w-60 flex-col border-r border-border-warm bg-surface transition-transform duration-200 ease-out lg:static lg:z-auto lg:shrink-0 lg:transition-[width] ${
+          collapsed ? 'lg:w-[68px]' : 'lg:w-60'
+        } ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+      >
+        {/* Logo + collapse toggle */}
+        <div className="flex h-14 shrink-0 items-center border-b border-border-warm px-5">
+          <div className={`flex min-w-0 flex-1 items-center gap-2.5 ${collapsed ? 'lg:hidden' : ''}`}>
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent font-mono text-sm font-bold text-white">
+              F
+            </span>
+            <span className="truncate text-sm font-semibold tracking-tight text-ink">Factus Easy</span>
+          </div>
+
+          <button
+            type="button"
+            onClick={onToggleCollapsed}
+            className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-md text-faint transition-colors duration-150 hover:bg-surface-2 hover:text-ink lg:flex"
+            title={collapsed ? 'Expandir menú' : 'Colapsar menú'}
+            aria-label={collapsed ? 'Expandir menú' : 'Colapsar menú'}
+          >
+            <svg
+              className={`h-4 w-4 transition-transform duration-200 ${collapsed ? 'rotate-180' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7M18 19l-7-7 7-7" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Nav */}
+        <nav className="flex-1 overflow-y-auto px-3 py-3">
+          {navGroups.map((group) => {
+            const isGroupCollapsed = collapsedGroups[group.label]
+            return (
+              <div key={group.label} className="mb-1">
+                <button
+                  type="button"
+                  onClick={() => toggleGroup(group.label)}
+                  className={`flex w-full items-center rounded-md text-[11px] font-semibold uppercase tracking-wider text-faint transition-colors duration-150 hover:text-muted ${
+                    collapsed ? 'lg:justify-center lg:py-2' : 'justify-between px-2.5 py-1.5'
+                  }`}
+                  title={collapsed ? group.label : undefined}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
+                  <span className={collapsed ? 'lg:hidden' : ''}>{group.label}</span>
+                  <svg
+                    className={`h-3.5 w-3.5 transition-transform duration-200 lg:hidden ${
+                      isGroupCollapsed ? '-rotate-90' : ''
+                    }`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
 
-              <div
-                className={`grid transition-[grid-template-rows] duration-200 ease-out ${
-                  isCollapsed ? 'grid-rows-[0fr]' : 'grid-rows-[1fr]'
-                }`}
-              >
-                <div className="overflow-hidden">
-                  {group.items.map((item) => (
-                    <NavLink
-                      key={item.path}
-                      to={item.path}
-                      end={item.path === '/' || item.path === '/settings'}
-                      className={({ isActive }) =>
-                        `group relative mb-0.5 flex items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] font-medium transition-colors duration-150 ${
-                          isActive
-                            ? 'bg-accent-soft text-accent'
-                            : 'text-muted hover:bg-surface-2 hover:text-ink'
-                        }`
-                      }
-                    >
-                      {({ isActive }) => (
-                        <>
-                          {isActive && (
-                            <span className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-accent" />
-                          )}
-                          <span
-                            className={`transition-colors duration-150 ${
-                              isActive ? 'text-accent' : 'text-faint group-hover:text-muted'
-                            }`}
-                          >
-                            {item.icon}
-                          </span>
-                          {item.label}
-                        </>
-                      )}
-                    </NavLink>
-                  ))}
+                <div
+                  className={`grid transition-[grid-template-rows] duration-200 ease-out ${
+                    isGroupCollapsed ? 'grid-rows-[0fr]' : 'grid-rows-[1fr]'
+                  }`}
+                >
+                  <div className={`overflow-hidden ${collapsed ? 'lg:pt-1' : ''}`}>
+                    {group.items.map((item) => (
+                      <NavLink
+                        key={item.path}
+                        to={item.path}
+                        end={item.path === '/' || item.path === '/settings'}
+                        onClick={handleNavigate}
+                        title={collapsed ? item.label : undefined}
+                        className={({ isActive }) =>
+                          `group relative mb-0.5 flex items-center gap-2.5 rounded-md text-[13px] font-medium transition-colors duration-150 ${
+                            collapsed ? 'lg:justify-center lg:px-0' : 'px-2.5'
+                          } py-2 ${
+                            isActive
+                              ? 'bg-accent-soft text-accent'
+                              : 'text-muted hover:bg-surface-2 hover:text-ink'
+                          }`
+                        }
+                      >
+                        {({ isActive }) => (
+                          <>
+                            {isActive && (
+                              <span className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-accent" />
+                            )}
+                            <span
+                              className={`shrink-0 transition-colors duration-150 ${
+                                isActive ? 'text-accent' : 'text-faint group-hover:text-muted'
+                              }`}
+                            >
+                              {item.icon}
+                            </span>
+                            <span className={`truncate ${collapsed ? 'lg:hidden' : ''}`}>{item.label}</span>
+                          </>
+                        )}
+                      </NavLink>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          )
-        })}
-      </nav>
+            )
+          })}
+        </nav>
 
-      {/* Company card */}
-      <div className="shrink-0 border-t border-border-warm p-3">
-        {selectedCompany && (
-          <div className="rounded-md border border-border-warm bg-canvas px-3 py-2.5">
-            <div className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-success" />
-              <span className="truncate text-[12px] font-medium text-ink">
-                {selectedCompany.name}
-              </span>
+        {/* Company card */}
+        <div className="shrink-0 border-t border-border-warm p-3">
+          {selectedCompany && (
+            <div className="rounded-md border border-border-warm bg-canvas px-3 py-2.5">
+              <div className={`flex items-center gap-2 ${collapsed ? 'lg:justify-center' : ''}`}>
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-success" />
+                <span className={`truncate text-[12px] font-medium text-ink ${collapsed ? 'lg:hidden' : ''}`}>
+                  {selectedCompany.name}
+                </span>
+              </div>
+              <div className={`mt-1 truncate font-mono text-[11px] text-faint ${collapsed ? 'lg:hidden' : ''}`}>
+                {selectedCompany.ruc}
+              </div>
             </div>
-            <div className="mt-1 truncate font-mono text-[11px] text-faint">
-              {selectedCompany.ruc}
-            </div>
-          </div>
-        )}
-      </div>
-    </aside>
+          )}
+        </div>
+      </aside>
+    </>
   )
 }
