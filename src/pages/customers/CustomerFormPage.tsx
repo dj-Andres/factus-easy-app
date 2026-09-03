@@ -21,8 +21,8 @@ import { toErrorMessage } from '../../lib/errors'
 import type { Customer, CustomerInput, IdentificationType } from '../../types/api'
 
 const ID_TYPE_OPTIONS: { value: IdentificationType; label: string }[] = [
-  { value: '04', label: 'Cédula' },
-  { value: '05', label: 'RUC' },
+  { value: '04', label: 'RUC' },
+  { value: '05', label: 'Cédula' },
   { value: '06', label: 'Pasaporte' },
   { value: '07', label: 'Consumidor Final' },
   { value: '08', label: 'Placa' },

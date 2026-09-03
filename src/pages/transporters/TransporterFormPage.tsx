@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import {
   Alert,
   Button,
@@ -21,29 +21,70 @@ import { toErrorMessage } from '../../lib/errors'
 import type { IdentificationType, Transporter, TransporterInput } from '../../types/api'
 
 const ID_TYPE_OPTIONS: { value: IdentificationType; label: string }[] = [
-  { value: '04', label: 'Cédula' },
-  { value: '05', label: 'RUC' },
+  { value: '04', label: 'RUC' },
+  { value: '05', label: 'Cédula' },
   { value: '06', label: 'Pasaporte' },
   { value: '07', label: 'Consumidor Final' },
   { value: '08', label: 'Placa' },
 ]
 
-const transporterSchema = z.object({
-  identification_type: z.enum(['04', '05', '06', '07', '08']),
-  identification_number: z
-    .string()
-    .min(1, 'La identificación es obligatoria')
-    .max(20, 'Máximo 20 caracteres'),
-  name: z.string().min(1, 'El nombre es obligatorio').max(150, 'Máximo 150 caracteres'),
-  phone: z.string().max(20, 'Máximo 20 caracteres').optional().or(z.literal('')),
-  address: z.string().max(300, 'Máximo 300 caracteres').optional().or(z.literal('')),
-  placa: z
-    .string()
-    .min(1, 'La placa es obligatoria')
-    .regex(/^[A-Za-z]{3}[0-9]{1,7}$/, 'La placa no es valida')
-    .max(10, 'Máximo 10 caracteres'),
-  rise: z.string().max(100, 'Máximo 100 caracteres').optional().or(z.literal('')),
-})
+const transporterSchema = z
+  .object({
+    identification_type: z.enum(['04', '05', '06', '07', '08']),
+    identification_number: z
+      .string()
+      .min(1, 'La identificación es obligatoria')
+      .max(20, 'Máximo 20 caracteres'),
+    name: z.string().min(1, 'El nombre es obligatorio').max(150, 'Máximo 150 caracteres'),
+    phone: z.string().max(20, 'Máximo 20 caracteres').optional().or(z.literal('')),
+    address: z.string().max(300, 'Máximo 300 caracteres').optional().or(z.literal('')),
+    placa: z
+      .string()
+      .min(1, 'La placa es obligatoria')
+      .regex(/^[A-Za-z]{3}[0-9]{1,7}$/, 'La placa no es valida')
+      .max(10, 'Máximo 10 caracteres'),
+    rise: z.string().max(100, 'Máximo 100 caracteres').optional().or(z.literal('')),
+  })
+  .superRefine((values, ctx) => {
+    const { identification_type: type, identification_number: number } = values
+    const clean = number.trim()
+
+    if (!clean) return
+
+    if (type === '07') {
+      if (clean !== '9999999999999') {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['identification_number'],
+          message: 'Para consumidor final use 9999999999999.',
+        })
+      }
+      return
+    }
+
+    if (type === '04' || type === '05') {
+      if (!/^\d+$/.test(clean)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['identification_number'],
+          message: 'El número de identificación debe contener solo dígitos.',
+        })
+        return
+      }
+
+      const expected = type === '04' ? 13 : 10
+      if (clean.length !== expected) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['identification_number'],
+          message:
+            type === '04'
+              ? 'El RUC debe tener 13 dígitos.'
+              : 'La cédula debe tener 10 dígitos.',
+        })
+      }
+    }
+  })
 
 type TransporterFormValues = z.infer<typeof transporterSchema>
 
@@ -65,6 +106,7 @@ export default function TransporterFormPage({ isOpen, onClose, transporter, onSa
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<TransporterFormValues>({
     resolver: zodResolver(transporterSchema),
@@ -78,6 +120,9 @@ export default function TransporterFormPage({ isOpen, onClose, transporter, onSa
       rise: '',
     },
   })
+
+  const identificationType = useWatch({ control, name: 'identification_type' })
+  const idMaxLength = identificationType === '04' ? 13 : identificationType === '05' ? 10 : 20
 
   useEffect(() => {
     if (isOpen) {
@@ -166,6 +211,7 @@ export default function TransporterFormPage({ isOpen, onClose, transporter, onSa
               <TextInput
                 id="identification_number"
                 placeholder="1234567890"
+                maxLength={idMaxLength}
                 color={errors.identification_number ? 'failure' : 'gray'}
                 {...register('identification_number')}
               />

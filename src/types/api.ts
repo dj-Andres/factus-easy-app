@@ -490,6 +490,111 @@ export interface QuickCreditNoteInput {
 }
 
 // ------------------------------------------------------------
+// Quick Remission Guide (SRI 06)
+// ------------------------------------------------------------
+
+export interface QuickRemissionGuideItem {
+  id: number
+  product_id: number
+  product_description: string | null
+  cantidad: number
+  codigo_interno: string | null
+  codigo_adicional: string | null
+  descripcion: string
+  detalles_adicionales: AdditionalDetail[] | null
+  created_at: string
+  updated_at: string
+}
+
+export interface QuickRemissionGuideDestinatario {
+  id: number
+  tipo_identificacion_destinatario: IdentificationType
+  identificacion_destinatario: string
+  razon_social_destinatario: string
+  dir_destinatario: string
+  motivo_traslado: string
+  doc_aduanero_unico: string | null
+  cod_estab_destino: string | null
+  ruta: string | null
+  cod_doc_sustento: string | null
+  num_doc_sustento: string | null
+  num_aut_doc_sustento: string | null
+  fecha_emision_doc_sustento: string | null
+  items?: QuickRemissionGuideItem[]
+  created_at: string
+  updated_at: string
+}
+
+export interface QuickRemissionGuide {
+  id: number
+  company_id: number
+  ruc: string
+  establishment_id: number
+  emission_point_id: number
+  transportista: {
+    id: number
+    name: string
+    identification_number: string
+    placa: string
+  } | null
+  emission_date: string
+  series: string
+  sequential: string
+  dir_establecimiento: string | null
+  dir_partida: string
+  placa: string
+  fecha_ini_transporte: string
+  fecha_fin_transporte: string
+  additional_info: Record<string, string> | null
+  document_id: number | null
+  document_status: string | null
+  access_key: string | null
+  status: string
+  destinatarios?: QuickRemissionGuideDestinatario[]
+  created_at: string
+  updated_at: string
+}
+
+export interface QuickRemissionGuideItemInput {
+  product_id: number
+  cantidad: number
+  codigoInterno?: string
+  codigoAdicional?: string
+  descripcion: string
+  detallesAdicionales?: AdditionalDetail[]
+}
+
+export interface QuickRemissionGuideDestinatarioInput {
+  tipo_identificacion_destinatario: IdentificationType
+  identificacion_destinatario: string
+  razon_social_destinatario: string
+  dir_destinatario: string
+  motivo_traslado: string
+  doc_aduanero_unico?: string
+  cod_estab_destino?: string
+  ruta?: string
+  cod_doc_sustento?: string
+  num_doc_sustento?: string
+  num_aut_doc_sustento?: string
+  fecha_emision_doc_sustento?: string
+  items: QuickRemissionGuideItemInput[]
+}
+
+export interface QuickRemissionGuideInput {
+  ruc: string
+  establishment_id: number
+  emission_point_id: number
+  transportista_id: number
+  dir_partida: string
+  placa: string
+  fecha_ini_transporte: string
+  fecha_fin_transporte: string
+  destinatarios: QuickRemissionGuideDestinatarioInput[]
+  additional_info?: Record<string, string>
+  emission_date?: string
+}
+
+// ------------------------------------------------------------
 // Documents (status queries)
 // ------------------------------------------------------------
 

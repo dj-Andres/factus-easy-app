@@ -52,6 +52,18 @@ const navGroups: NavGroup[] = [
         ),
       },
       {
+        label: 'Guías de Remisión',
+        path: '/quick-remission-guides',
+        icon: (
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 6h9v9H3z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9h4l3 3v3h-7z" />
+            <circle cx="7" cy="18" r="1.5" />
+            <circle cx="17" cy="18" r="1.5" />
+          </svg>
+        ),
+      },
+      {
         label: 'Documentos',
         path: '/documents',
         icon: (
