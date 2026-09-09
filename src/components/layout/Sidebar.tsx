@@ -64,6 +64,16 @@ const navGroups: NavGroup[] = [
         ),
       },
       {
+        label: 'Retenciones',
+        path: '/quick-retentions',
+        icon: (
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 3v6M15 3v6M9 15v6M15 15v6" />
+          </svg>
+        ),
+      },
+      {
         label: 'Documentos',
         path: '/documents',
         icon: (
@@ -182,7 +192,7 @@ const navGroups: NavGroup[] = [
         ),
       },
       {
-        label: 'Retenciones',
+        label: 'Catálogo retenciones',
         path: '/settings/retentions',
         icon: (
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>

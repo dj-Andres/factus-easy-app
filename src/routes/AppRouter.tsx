@@ -18,6 +18,8 @@ import QuickCreditNoteFormPage from '../pages/credit-notes/QuickCreditNoteFormPa
 import QuickCreditNoteListPage from '../pages/credit-notes/QuickCreditNoteListPage'
 import QuickRemissionGuideFormPage from '../pages/remission-guides/QuickRemissionGuideFormPage'
 import QuickRemissionGuideListPage from '../pages/remission-guides/QuickRemissionGuideListPage'
+import QuickRetentionFormPage from '../pages/retentions/QuickRetentionFormPage'
+import QuickRetentionListPage from '../pages/retentions/QuickRetentionListPage'
 import ProductListPage from '../pages/products/ProductListPage'
 import TransporterListPage from '../pages/transporters/TransporterListPage'
 import GuestRoute from './GuestRoute'
@@ -49,6 +51,10 @@ export default function AppRouter() {
           <Route path="/quick-remission-guides/new" element={<QuickRemissionGuideFormPage />} />
           <Route path="/quick-remission-guides/:id" element={<QuickRemissionGuideFormPage />} />
           <Route path="/quick-remission-guides/:id/edit" element={<QuickRemissionGuideFormPage />} />
+          <Route path="/quick-retentions" element={<QuickRetentionListPage />} />
+          <Route path="/quick-retentions/new" element={<QuickRetentionFormPage />} />
+          <Route path="/quick-retentions/:id" element={<QuickRetentionFormPage />} />
+          <Route path="/quick-retentions/:id/edit" element={<QuickRetentionFormPage />} />
           <Route path="/documents" element={<DocumentStatusPage />} />
           <Route path="/received-documents" element={<ReceivedDocumentsPage />} />
           <Route path="/settings" element={<CompanyPage />} />

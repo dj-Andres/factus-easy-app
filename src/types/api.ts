@@ -311,10 +311,12 @@ export interface PaymentMethod {
 }
 
 export interface RetentionConfig {
+  id: number
   name: string
   type: number
   code_sri: string
   percentage: number
+  active: boolean
 }
 
 // ------------------------------------------------------------
@@ -592,6 +594,87 @@ export interface QuickRemissionGuideInput {
   destinatarios: QuickRemissionGuideDestinatarioInput[]
   additional_info?: Record<string, string>
   emission_date?: string
+}
+
+// ------------------------------------------------------------
+// Quick Retention (SRI 07)
+// ------------------------------------------------------------
+
+export interface QuickRetentionCustomer {
+  id: number
+  name: string
+  identification_number: string
+  identification_type: IdentificationType
+  address: string | null
+}
+
+export interface QuickRetentionDetail {
+  id: number
+  retention_config_id: number | null
+  codigo: string
+  codigo_retencion: string
+  descripcion: string | null
+  base_imponible: number
+  porcentaje_retener: number
+  valor_retenido: number
+  cod_doc_sustento: string
+  num_doc_sustento: string
+  fecha_emision_doc_sustento: string
+  created_at: string
+  updated_at: string
+}
+
+export interface QuickRetention {
+  id: number
+  company_id: number
+  ruc: string
+  establishment_id: number
+  emission_point_id: number
+  customer: QuickRetentionCustomer | null
+  emission_date: string | null
+  series: string
+  sequential: string
+  periodo_fiscal: string
+  tipo_identificacion_sujeto_retenido: IdentificationType
+  identificacion_sujeto_retenido: string
+  razon_social_sujeto_retenido: string
+  direccion_sujeto_retenido: string | null
+  additional_info: Record<string, string> | null
+  document_id: number | null
+  document_status: string | null
+  access_key: string | null
+  status: string
+  details?: QuickRetentionDetail[]
+  created_at: string
+  updated_at: string
+}
+
+export interface QuickRetentionDetailInput {
+  retention_config_id?: number
+  codigo: string
+  codigo_retencion: string
+  descripcion: string
+  base_imponible: number
+  porcentaje_retener: number
+  valor_retenido: number
+  cod_doc_sustento: string
+  num_doc_sustento: string
+  fecha_emision_doc_sustento: string
+}
+
+export interface QuickRetentionInput {
+  ruc: string
+  establishment_id: number
+  emission_point_id: number
+  customer_id?: number
+  emission_date?: string
+  periodo_fiscal: string
+  tipo_identificacion_sujeto_retenido: IdentificationType
+  identificacion_sujeto_retenido: string
+  razon_social_sujeto_retenido: string
+  direccion_sujeto_retenido?: string
+  additional_info?: Record<string, string>
+  details: QuickRetentionDetailInput[]
 }
 
 // ------------------------------------------------------------
