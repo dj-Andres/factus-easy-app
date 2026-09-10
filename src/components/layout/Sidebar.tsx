@@ -7,11 +7,13 @@ interface NavItem {
   label: string
   path: string
   icon: ReactNode
+  guide?: string
 }
 
 interface NavGroup {
   label: string
   items: NavItem[]
+  guide?: string
 }
 
 const navGroups: NavGroup[] = [
@@ -31,10 +33,12 @@ const navGroups: NavGroup[] = [
   },
   {
     label: 'Documentos',
+    guide: 'nav-documentos',
     items: [
       {
         label: 'Facturas',
         path: '/quick-invoices',
+        guide: 'nav-facturas',
         icon: (
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M7 3h7v5h5v13H7z" />
@@ -88,6 +92,7 @@ const navGroups: NavGroup[] = [
   },
   {
     label: 'Catálogos',
+    guide: 'nav-catalogos',
     items: [
       {
         label: 'Clientes',
@@ -131,6 +136,7 @@ const navGroups: NavGroup[] = [
       {
         label: 'Configuración',
         path: '/settings',
+        guide: 'nav-configuracion',
         icon: (
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h10M18 6h2M4 12h2M10 12h10M4 18h7M15 18h5" />
@@ -232,7 +238,10 @@ export default function AppSidebar({ collapsed, onToggleCollapsed, mobileOpen, o
       >
         {/* Logo + collapse toggle */}
         <div className="flex h-14 shrink-0 items-center border-b border-border-warm px-5">
-          <div className={`flex min-w-0 flex-1 items-center gap-2.5 ${collapsed ? 'lg:hidden' : ''}`}>
+          <div
+            data-guide="sidebar-logo"
+            className={`flex min-w-0 flex-1 items-center gap-2.5 ${collapsed ? 'lg:hidden' : ''}`}
+          >
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600">
               <FaFileInvoiceDollar className="h-[18px] w-[18px] text-white" />
             </span>
@@ -266,6 +275,7 @@ export default function AppSidebar({ collapsed, onToggleCollapsed, mobileOpen, o
               <div key={group.label} className="mb-1">
                 <button
                   type="button"
+                  data-guide={group.guide}
                   onClick={() => toggleGroup(group.label)}
                   className={`flex w-full items-center rounded-md text-[11px] font-semibold uppercase tracking-wider text-faint transition-colors duration-150 hover:text-muted ${
                     collapsed ? 'lg:justify-center lg:py-2' : 'justify-between px-2.5 py-1.5'
@@ -298,6 +308,7 @@ export default function AppSidebar({ collapsed, onToggleCollapsed, mobileOpen, o
                         to={item.path}
                         end={item.path === '/' || item.path === '/settings'}
                         onClick={handleNavigate}
+                        data-guide={item.guide}
                         title={collapsed ? item.label : undefined}
                         className={({ isActive }) =>
                           `group relative mb-0.5 flex items-center gap-2.5 rounded-md text-[13px] font-medium transition-colors duration-150 ${

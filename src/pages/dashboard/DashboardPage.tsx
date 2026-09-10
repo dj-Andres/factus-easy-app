@@ -1,8 +1,10 @@
 import { Alert, Spinner, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from 'flowbite-react'
 import { useCompany } from '../../hooks/useCompany'
 import { useDashboardStats } from '../../hooks/useDashboard'
+import { usePageTour } from '../../hooks/usePageTour'
 import { DOCUMENT_STATUS_LABELS, formatDate, statusTone } from '../../lib/documents'
 import Badge from '../../components/ui/Badge'
+import TourButton from '../../components/ui/TourButton'
 import type { DashboardTypeStat } from '../../types/api'
 
 interface StatCardProps {
@@ -30,6 +32,7 @@ function byTypeMap(items?: DashboardTypeStat[]): Record<string, DashboardTypeSta
 }
 
 export default function DashboardPage() {
+  usePageTour('dashboard')
   const { selectedRuc, isLoading: loadingCompany } = useCompany()
   const { data, isPending, error, refetch } = useDashboardStats(selectedRuc)
 
@@ -38,7 +41,7 @@ export default function DashboardPage() {
   const catalogs = data?.catalogs
   const recent = data?.recent ?? []
 
-  const isLoading = loadingCompany || isPending || !selectedRuc
+  const isLoading = loadingCompany || isPending
 
   return (
     <div className="space-y-6">
@@ -49,15 +52,18 @@ export default function DashboardPage() {
             {selectedRuc ? `Resumen de ${selectedRuc}` : 'Bienvenido'}
           </p>
         </div>
-        {error && (
-          <button
-            type="button"
-            onClick={() => refetch()}
-            className="text-[13px] font-medium text-accent hover:text-accent-hover"
-          >
-            Reintentar
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          <TourButton tourName="dashboard" />
+          {error && (
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="text-[13px] font-medium text-accent hover:text-accent-hover"
+            >
+              Reintentar
+            </button>
+          )}
+        </div>
       </div>
 
       {isLoading ? (
@@ -71,7 +77,7 @@ export default function DashboardPage() {
         </Alert>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div data-guide="dashboard-stats" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard
               label="Facturas emitidas"
               value={byType['01']?.month ?? 0}

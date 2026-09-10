@@ -30,8 +30,10 @@ import {
   useUpdateEmissionPointSequential,
 } from '../../hooks/useEmissionPoints'
 import { useEstablishments } from '../../hooks/useEstablishments'
+import { usePageTour } from '../../hooks/usePageTour'
 import { toErrorMessage } from '../../lib/errors'
 import Badge from '../../components/ui/Badge'
+import TourButton from '../../components/ui/TourButton'
 import type { CompanyEmissionPoint } from '../../types/api'
 
 const emissionPointSchema = z.object({
@@ -43,6 +45,7 @@ const emissionPointSchema = z.object({
 type EmissionPointFormValues = z.infer<typeof emissionPointSchema>
 
 export default function EmissionPointsPage() {
+  usePageTour('emission-points')
   const selectedRuc = useAuthStore((state) => state.selectedRuc)
 
   const [showForm, setShowForm] = useState(false)
@@ -134,15 +137,18 @@ export default function EmissionPointsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-ink">Puntos de Emisión</h1>
+          <h1 data-guide="page-title" className="text-xl font-semibold tracking-tight text-ink">Puntos de Emisión</h1>
           <p className="mt-1 text-sm text-muted">Secuenciales por establecimiento</p>
         </div>
-        <Button color="blue" onClick={openCreate}>
-          Nuevo Punto de Emisión
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button data-guide="create-button" color="blue" onClick={openCreate}>
+            Nuevo Punto de Emisión
+          </Button>
+          <TourButton tourName="emission-points" />
+        </div>
       </div>
 
-      <div className="rounded-lg border border-border-warm bg-surface shadow-card">
+      <div data-guide="list-card" className="rounded-lg border border-border-warm bg-surface shadow-card">
         {error && (
           <div className="px-4 pt-4">
             <Alert color="red">No se pudieron cargar los puntos de emisión</Alert>

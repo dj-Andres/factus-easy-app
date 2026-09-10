@@ -2,15 +2,18 @@ import { useEffect, useState } from 'react'
 import { Alert, Button, Spinner, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from 'flowbite-react'
 import { useAuthStore } from '../../stores/authStore'
 import { useCustomers, useDeleteCustomer } from '../../hooks/useCustomers'
+import { usePageTour } from '../../hooks/usePageTour'
 import ConfirmModal from '../../components/ui/ConfirmModal'
 import TablePagination from '../../components/ui/TablePagination'
 import SortableTh from '../../components/ui/SortableTh'
+import TourButton from '../../components/ui/TourButton'
 import { useColumnSort } from '../../hooks/useColumnSort'
 import type { Customer } from '../../types/api'
 import CustomerFormPage from './CustomerFormPage'
 import { IDENTIFICATION_TYPES } from './constants'
 
 export default function CustomerListPage() {
+  usePageTour('customers')
   const selectedRuc = useAuthStore((state) => state.selectedRuc)
 
   const [searchInput, setSearchInput] = useState('')
@@ -84,15 +87,18 @@ export default function CustomerListPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-ink">Clientes</h1>
+          <h1 data-guide="page-title" className="text-xl font-semibold tracking-tight text-ink">Clientes</h1>
           <p className="mt-1 text-sm text-muted">{total} clientes en total</p>
         </div>
-        <Button color="blue" onClick={openCreate}>
-          Nuevo Cliente
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button data-guide="create-button" color="blue" onClick={openCreate}>
+            Nuevo Cliente
+          </Button>
+          <TourButton tourName="customers" />
+        </div>
       </div>
 
-      <div className="rounded-lg border border-border-warm bg-surface shadow-card">
+      <div data-guide="list-card" className="rounded-lg border border-border-warm bg-surface shadow-card">
         <div className="flex flex-col gap-3 border-b border-border-warm p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative w-full sm:max-w-xs">
             <svg
@@ -105,6 +111,7 @@ export default function CustomerListPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
+              data-guide="search-input"
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}

@@ -5,10 +5,12 @@ import { Alert, Button, HelperText, Label, Select, Spinner, TextInput } from 'fl
 import { z } from 'zod'
 import { useAuthStore } from '../../stores/authStore'
 import { useCompanies, useUpdateCompany, useUploadCertificate, useUploadLogo } from '../../hooks/useCompanyConfig'
+import { usePageTour } from '../../hooks/usePageTour'
 import { toErrorMessage } from '../../lib/errors'
 import Badge from '../../components/ui/Badge'
 import CompanySelector from '../../components/layout/CompanySelector'
-import CreateCompanyModal from './CreateCompanyModal'
+import TourButton from '../../components/ui/TourButton'
+import CreateCompanyModal from '../../components/layout/CreateCompanyModal'
 import type { CompanyUpdatePayload } from '../../api/company'
 
 const companySchema = z
@@ -46,6 +48,7 @@ type CompanyFormValues = z.infer<typeof companySchema>
 
 export default function CompanyPage() {
   const selectedRuc = useAuthStore((state) => state.selectedRuc)
+  usePageTour('settings')
   const { data: companies, isPending } = useCompanies()
   const company = companies?.find((c) => c.ruc === selectedRuc) ?? null
 
@@ -115,10 +118,6 @@ export default function CompanyPage() {
     )
   }
 
-  if (!company) {
-    return <div className="py-24 text-center text-sm text-faint">No hay empresa seleccionada</div>
-  }
-
   const onSubmit = (values: CompanyFormValues) => {
     if (!selectedRuc) return
     setSaveError(null)
@@ -183,7 +182,7 @@ export default function CompanyPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-ink">Configuración de Empresa</h1>
+          <h1 data-guide="page-title" className="text-xl font-semibold tracking-tight text-ink">Configuración de Empresa</h1>
           <div className="mt-2 flex flex-wrap items-center gap-3">
             <CompanySelector />
             <button
@@ -193,21 +192,37 @@ export default function CompanyPage() {
             >
               + Nueva empresa
             </button>
+            <TourButton tourName="settings" />
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {company.environment && (
-            <Badge tone={company.environment === 'production' ? 'green' : 'orange'}>
-              {company.environment === 'production' ? 'Producción' : 'Pruebas'}
+        {company && (
+          <div className="flex items-center gap-2">
+            {company.environment && (
+              <Badge tone={company.environment === 'production' ? 'green' : 'orange'}>
+                {company.environment === 'production' ? 'Producción' : 'Pruebas'}
+              </Badge>
+            )}
+            <Badge tone={company.status === 'ACTIVE' ? 'green' : 'gray'}>
+              {company.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
             </Badge>
-          )}
-          <Badge tone={company.status === 'ACTIVE' ? 'green' : 'gray'}>
-            {company.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
-          </Badge>
-        </div>
+          </div>
+        )}
       </div>
 
-      <div className="rounded-lg border border-border-warm bg-surface p-6 shadow-card">
+      {!company ? (
+        <div className="rounded-lg border border-border-warm bg-surface p-10 text-center shadow-card">
+          <h2 className="text-base font-semibold text-ink">Aún no tienes una empresa registrada</h2>
+          <p className="mx-auto mt-2 max-w-md text-sm text-muted">
+            Registra tu RUC para comenzar a facturar. Solo necesitas los datos de tu empresa y después podrás
+            cargar el certificado digital (.p12) para emitir comprobantes autorizados.
+          </p>
+          <Button color="blue" className="mt-6" onClick={() => setShowCreate(true)}>
+            Crear empresa
+          </Button>
+        </div>
+      ) : (
+        <>
+      <div data-guide="company-form" className="rounded-lg border border-border-warm bg-surface p-6 shadow-card">
         <h2 className="text-sm font-semibold text-ink">Datos de la empresa</h2>
         {saveError && (
           <Alert color="red" className="mt-4" onDismiss={() => setSaveError(null)}>
@@ -333,7 +348,7 @@ export default function CompanyPage() {
         </form>
       </div>
 
-      <div className="rounded-lg border border-border-warm bg-surface p-6 shadow-card">
+      <div data-guide="certificate-section" className="rounded-lg border border-border-warm bg-surface p-6 shadow-card">
         <h2 className="text-sm font-semibold text-ink">Certificado digital (.p12)</h2>
         <p className="mt-1 text-[13px] text-muted">
           Firma electrónica para emitir comprobantes autorizados.
@@ -432,7 +447,9 @@ export default function CompanyPage() {
             Subir logo
           </Button>
         </div>
-      </div>
+        </div>
+        </>
+      )}
 
       <CreateCompanyModal
         isOpen={showCreate}

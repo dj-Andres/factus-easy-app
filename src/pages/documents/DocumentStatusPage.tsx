@@ -11,6 +11,7 @@ import {
 } from 'flowbite-react'
 import { useAuthStore } from '../../stores/authStore'
 import { useDocumentStatus } from '../../hooks/useDocuments'
+import { usePageTour } from '../../hooks/usePageTour'
 import { downloadDocumentRide, downloadDocumentXml } from '../../api/documents'
 import {
   DOCUMENT_STATUS_LABELS,
@@ -21,6 +22,7 @@ import {
 import Badge from '../../components/ui/Badge'
 import TablePagination from '../../components/ui/TablePagination'
 import SortableTh from '../../components/ui/SortableTh'
+import TourButton from '../../components/ui/TourButton'
 import { useColumnSort } from '../../hooks/useColumnSort'
 import type { DocumentStatus, DocumentStatusCode, DocumentTypeCode } from '../../types/api'
 import DocumentDetailModal from './DocumentDetailModal'
@@ -47,6 +49,7 @@ async function downloadBlob(blob: Blob, filename: string): Promise<void> {
 }
 
 export default function DocumentStatusPage() {
+  usePageTour('documents')
   const selectedRuc = useAuthStore((state) => state.selectedRuc)
 
   const [tipo, setTipo] = useState<DocumentTypeCode | ''>('')
@@ -117,13 +120,16 @@ export default function DocumentStatusPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight text-ink">Documentos</h1>
-        <p className="mt-1 text-sm text-muted">Estado de comprobantes emitidos</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 data-guide="page-title" className="text-xl font-semibold tracking-tight text-ink">Documentos</h1>
+          <p className="mt-1 text-sm text-muted">Estado de comprobantes emitidos</p>
+        </div>
+        <TourButton tourName="documents" />
       </div>
 
       {summary && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div data-guide="summary-cards" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="rounded-lg border border-border-warm bg-surface p-4 shadow-card">
             <div className="text-[12px] text-muted">Total</div>
             <div className="mt-1 font-mono text-xl font-semibold text-ink">{summary.total_documents}</div>
@@ -149,8 +155,8 @@ export default function DocumentStatusPage() {
         </div>
       )}
 
-      <div className="rounded-lg border border-border-warm bg-surface shadow-card">
-        <div className="flex flex-col gap-3 border-b border-border-warm p-4 lg:flex-row lg:items-end">
+      <div data-guide="list-card" className="rounded-lg border border-border-warm bg-surface shadow-card">
+        <div data-guide="filters" className="flex flex-col gap-3 border-b border-border-warm p-4 lg:flex-row lg:items-end">
           <div>
             <div className="mb-1 text-[12px] text-faint">Tipo</div>
             <select

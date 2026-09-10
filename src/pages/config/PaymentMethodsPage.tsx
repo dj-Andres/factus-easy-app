@@ -1,17 +1,23 @@
 import { Alert, Spinner, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from 'flowbite-react'
 import { usePaymentMethods } from '../../hooks/usePaymentMethods'
+import { usePageTour } from '../../hooks/usePageTour'
+import TourButton from '../../components/ui/TourButton'
 
 export default function PaymentMethodsPage() {
+  usePageTour('payment-methods')
   const { data: methods, isPending, error } = usePaymentMethods()
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight text-ink">Formas de Pago</h1>
-        <p className="mt-1 text-sm text-muted">Catálogo de formas de pago del SRI (solo lectura)</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 data-guide="page-title" className="text-xl font-semibold tracking-tight text-ink">Formas de Pago</h1>
+          <p className="mt-1 text-sm text-muted">Catálogo de formas de pago del SRI (solo lectura)</p>
+        </div>
+        <TourButton tourName="payment-methods" />
       </div>
 
-      <div className="rounded-lg border border-border-warm bg-surface shadow-card">
+      <div data-guide="list-card" className="rounded-lg border border-border-warm bg-surface shadow-card">
         {error && (
           <div className="px-4 pt-4">
             <Alert color="red">No se pudieron cargar las formas de pago</Alert>

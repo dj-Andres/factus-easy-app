@@ -1,6 +1,8 @@
 import { Alert, Spinner, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from 'flowbite-react'
 import { useSriTaxes } from '../../hooks/useProducts'
+import { usePageTour } from '../../hooks/usePageTour'
 import Badge, { type BadgeTone } from '../../components/ui/Badge'
+import TourButton from '../../components/ui/TourButton'
 import type { SriTax } from '../../types/api'
 
 function taxTypeTone(taxType: string): BadgeTone {
@@ -30,6 +32,7 @@ function groupByType(taxes: SriTax[]): Record<string, SriTax[]> {
 const TYPE_ORDER = ['IVA', 'ICE', 'IRBPNR']
 
 export default function SriTaxesPage() {
+  usePageTour('sri-taxes')
   const { data: taxes, isPending, error } = useSriTaxes()
 
   const groups = taxes ? groupByType(taxes) : {}
@@ -39,12 +42,15 @@ export default function SriTaxesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight text-ink">Impuestos SRI</h1>
-        <p className="mt-1 text-sm text-muted">Catálogo de impuestos del SRI (solo lectura)</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 data-guide="page-title" className="text-xl font-semibold tracking-tight text-ink">Impuestos SRI</h1>
+          <p className="mt-1 text-sm text-muted">Catálogo de impuestos del SRI (solo lectura)</p>
+        </div>
+        <TourButton tourName="sri-taxes" />
       </div>
 
-      <div className="rounded-lg border border-border-warm bg-surface shadow-card">
+      <div data-guide="list-card" className="rounded-lg border border-border-warm bg-surface shadow-card">
         {error && (
           <div className="px-4 pt-4">
             <Alert color="red">No se pudieron cargar los impuestos</Alert>

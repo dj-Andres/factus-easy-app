@@ -1,6 +1,8 @@
 import { Alert, Spinner, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from 'flowbite-react'
 import { useRetentionConfigs } from '../../hooks/useRetentionConfigs'
+import { usePageTour } from '../../hooks/usePageTour'
 import Badge, { type BadgeTone } from '../../components/ui/Badge'
+import TourButton from '../../components/ui/TourButton'
 import type { RetentionConfig } from '../../types/api'
 
 function typeLabel(type: number): string {
@@ -32,6 +34,7 @@ function formatPercentage(value: number): string {
 const TYPE_ORDER = [1, 2]
 
 export default function RetentionConfigsPage() {
+  usePageTour('retention-configs')
   const { data: retentions, isPending, error } = useRetentionConfigs()
 
   const groups = retentions
@@ -46,12 +49,15 @@ export default function RetentionConfigsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight text-ink">Retenciones</h1>
-        <p className="mt-1 text-sm text-muted">Catálogo de retenciones del SRI (solo lectura)</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 data-guide="page-title" className="text-xl font-semibold tracking-tight text-ink">Retenciones</h1>
+          <p className="mt-1 text-sm text-muted">Catálogo de retenciones del SRI (solo lectura)</p>
+        </div>
+        <TourButton tourName="retention-configs" />
       </div>
 
-      <div className="rounded-lg border border-border-warm bg-surface shadow-card">
+      <div data-guide="list-card" className="rounded-lg border border-border-warm bg-surface shadow-card">
         {error && (
           <div className="px-4 pt-4">
             <Alert color="red">No se pudieron cargar las retenciones</Alert>

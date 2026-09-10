@@ -25,6 +25,7 @@ export function useCompany() {
     selectedRuc,
     setSelectedRuc,
     isLoading: query.isPending,
+    isEmpty: !query.isPending && !query.error && companies.length === 0,
     error: query.error ? 'No se pudieron cargar las empresas' : null,
     refetch: query.refetch,
   }

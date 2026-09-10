@@ -3,12 +3,14 @@ import { Alert, Button, Spinner, Table, TableBody, TableCell, TableHead, TableHe
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
 import { useQuickInvoices, useSendQuickInvoice } from '../../hooks/useQuickInvoices'
+import { usePageTour } from '../../hooks/usePageTour'
 import { quickInvoiceStatusLabel, quickInvoiceStatusTone } from '../../lib/quickInvoices'
 import { formatDate, formatPrice } from '../../lib/documents'
 import Badge from '../../components/ui/Badge'
 import ConfirmModal from '../../components/ui/ConfirmModal'
 import TablePagination from '../../components/ui/TablePagination'
 import SortableTh from '../../components/ui/SortableTh'
+import TourButton from '../../components/ui/TourButton'
 import { useColumnSort } from '../../hooks/useColumnSort'
 import QuickInvoiceViewModal from './components/QuickInvoiceViewModal'
 import type { QuickInvoice } from '../../types/api'
@@ -20,6 +22,7 @@ const STATUS_OPTIONS = [
 ]
 
 export default function QuickInvoiceListPage() {
+  usePageTour('invoices')
   const navigate = useNavigate()
   const selectedRuc = useAuthStore((state) => state.selectedRuc)
 
@@ -88,15 +91,18 @@ export default function QuickInvoiceListPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-ink">Facturas</h1>
+          <h1 data-guide="page-title" className="text-xl font-semibold tracking-tight text-ink">Facturas</h1>
           <p className="mt-1 text-sm text-muted">{total} facturas rápidas</p>
         </div>
-        <Button color="blue" onClick={() => navigate('/quick-invoices/new')}>
-          Nueva Factura
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button data-guide="create-button" color="blue" onClick={() => navigate('/quick-invoices/new')}>
+            Nueva Factura
+          </Button>
+          <TourButton tourName="invoices" />
+        </div>
       </div>
 
-      <div className="rounded-lg border border-border-warm bg-surface shadow-card">
+      <div data-guide="list-card" className="rounded-lg border border-border-warm bg-surface shadow-card">
         <div className="flex flex-col gap-3 border-b border-border-warm p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative w-full sm:max-w-xs">
             <svg
@@ -109,6 +115,7 @@ export default function QuickInvoiceListPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
+              data-guide="search-input"
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}

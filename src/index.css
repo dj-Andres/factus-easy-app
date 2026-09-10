@@ -163,3 +163,71 @@ a:hover {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---- Onboarding tour (Driver.js) ---- */
+
+.driver-popover.factus-tour-popover {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-pop);
+  font-family: var(--font-sans);
+}
+
+.driver-popover.factus-tour-popover .driver-popover-title {
+  color: var(--color-ink);
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.driver-popover.factus-tour-popover .driver-popover-description {
+  color: var(--color-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.driver-popover.factus-tour-popover .driver-popover-progress-text {
+  color: var(--color-faint);
+  font-size: 12px;
+}
+
+.driver-popover.factus-tour-popover .driver-popover-close-btn {
+  color: var(--color-faint);
+}
+
+.driver-popover.factus-tour-popover .driver-popover-close-btn:hover,
+.driver-popover.factus-tour-popover .driver-popover-close-btn:focus {
+  color: var(--color-ink);
+}
+
+.driver-popover.factus-tour-popover .driver-popover-prev-btn {
+  color: var(--color-muted);
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.driver-popover.factus-tour-popover .driver-popover-prev-btn:hover,
+.driver-popover.factus-tour-popover .driver-popover-prev-btn:focus {
+  background-color: var(--color-surface-2);
+}
+
+.driver-popover.factus-tour-popover .driver-popover-next-btn,
+.driver-popover.factus-tour-popover .driver-popover-done-btn {
+  color: #fff;
+  background-color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.driver-popover.factus-tour-popover .driver-popover-next-btn:hover,
+.driver-popover.factus-tour-popover .driver-popover-next-btn:focus,
+.driver-popover.factus-tour-popover .driver-popover-done-btn:hover,
+.driver-popover.factus-tour-popover .driver-popover-done-btn:focus {
+  background-color: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+}

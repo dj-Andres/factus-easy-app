@@ -27,8 +27,10 @@ import {
   useToggleEstablishment,
   useUpdateEstablishment,
 } from '../../hooks/useEstablishments'
+import { usePageTour } from '../../hooks/usePageTour'
 import { toErrorMessage } from '../../lib/errors'
 import Badge from '../../components/ui/Badge'
+import TourButton from '../../components/ui/TourButton'
 import type { CompanyEstablishment } from '../../types/api'
 
 const establishmentSchema = z.object({
@@ -40,6 +42,7 @@ const establishmentSchema = z.object({
 type EstablishmentFormValues = z.infer<typeof establishmentSchema>
 
 export default function EstablishmentsPage() {
+  usePageTour('establishments')
   const selectedRuc = useAuthStore((state) => state.selectedRuc)
 
   const [showForm, setShowForm] = useState(false)
@@ -104,15 +107,18 @@ export default function EstablishmentsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-ink">Establecimientos</h1>
+          <h1 data-guide="page-title" className="text-xl font-semibold tracking-tight text-ink">Establecimientos</h1>
           <p className="mt-1 text-sm text-muted">Sucursales de la empresa</p>
         </div>
-        <Button color="blue" onClick={openCreate}>
-          Nuevo Establecimiento
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button data-guide="create-button" color="blue" onClick={openCreate}>
+            Nuevo Establecimiento
+          </Button>
+          <TourButton tourName="establishments" />
+        </div>
       </div>
 
-      <div className="rounded-lg border border-border-warm bg-surface shadow-card">
+      <div data-guide="list-card" className="rounded-lg border border-border-warm bg-surface shadow-card">
         {error && (
           <div className="px-4 pt-4">
             <Alert color="red">No se pudieron cargar los establecimientos</Alert>
