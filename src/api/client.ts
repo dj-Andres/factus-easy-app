@@ -38,7 +38,6 @@ interface ValidationErrorLike {
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_URL,
-  withCredentials: true,
   headers: {
     Accept: 'application/json',
     'Content-Type': 'application/json',
