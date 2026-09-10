@@ -800,48 +800,50 @@ export interface DocumentStatusQuery {
 }
 
 // ------------------------------------------------------------
-// Received documents (SRI → app, via TXT upload)
+// Dashboard
 // ------------------------------------------------------------
 
-export interface ReceivedDocument {
+export interface DashboardStats {
+  today: number
+  week: number
+  month: number
+  total: number
+  authorized: number
+  pending: number
+  rejected: number
+  errors: number
+}
+
+export interface DashboardTypeStat {
+  type: string
+  type_label: string
+  month: number
+  total: number
+}
+
+export interface DashboardCatalogs {
+  customers: number
+  products: number
+  transporters: number
+}
+
+export interface DashboardRecentDocument {
   id: number
-  upload_id: number
-  line_number: number | null
-  sri_document_code: string
-  issuer_ruc: string
-  issuer_business_name: string | null
-  voucher_type: string | null
-  voucher_series: string | null
+  type: string
+  type_label: string
   access_key: string
-  authorized_at: string | null
-  issued_on: string | null
-  recipient_identification: string | null
-  amount_without_taxes: number | null
-  vat_amount: number | null
-  total_amount: number | null
-  modified_document_number: string | null
-  has_xml: boolean
-  sri_checked_at: string | null
+  series: string
+  sequential: string
+  status: string
+  issue_date: string | null
   created_at: string
-  updated_at: string
 }
 
-export interface ReceivedDocumentsResult {
-  documents: ReceivedDocument[]
-  pagination: DocumentPagination
-}
-
-export interface ReceivedDocumentsQuery {
-  ruc: string
-  sri_document_code?: string
-  issuer_ruc?: string
-  access_key?: string
-  upload_id?: number
-  issued_from?: string
-  issued_to?: string
-  has_xml?: boolean
-  page?: number
-  per_page?: number
+export interface DashboardStatsResult {
+  stats: DashboardStats
+  by_type: DashboardTypeStat[]
+  catalogs: DashboardCatalogs
+  recent: DashboardRecentDocument[]
 }
 
 // ------------------------------------------------------------

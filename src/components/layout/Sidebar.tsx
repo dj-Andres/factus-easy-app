@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
+import { FaFileInvoiceDollar } from 'react-icons/fa6'
 import { useCompany } from '../../hooks/useCompany'
 
 interface NavItem {
@@ -80,16 +81,6 @@ const navGroups: NavGroup[] = [
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M8 6h12M8 12h12M8 18h12" />
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 6h2M3 12h2M3 18h2" />
-          </svg>
-        ),
-      },
-      {
-        label: 'Recibidos',
-        path: '/received-documents',
-        icon: (
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 13h4l2 3h4l2-3h4" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 5h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z" />
           </svg>
         ),
       },
@@ -242,8 +233,8 @@ export default function AppSidebar({ collapsed, onToggleCollapsed, mobileOpen, o
         {/* Logo + collapse toggle */}
         <div className="flex h-14 shrink-0 items-center border-b border-border-warm px-5">
           <div className={`flex min-w-0 flex-1 items-center gap-2.5 ${collapsed ? 'lg:hidden' : ''}`}>
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent font-mono text-sm font-bold text-white">
-              F
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600">
+              <FaFileInvoiceDollar className="h-[18px] w-[18px] text-white" />
             </span>
             <span className="truncate text-sm font-semibold tracking-tight text-ink">Factus Easy</span>
           </div>

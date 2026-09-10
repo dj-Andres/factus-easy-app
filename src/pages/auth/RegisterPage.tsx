@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Alert, Button, HelperText, Label, Spinner, TextInput } from 'flowbite-react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
+import { FaFileInvoiceDollar } from 'react-icons/fa6'
 import { z } from 'zod'
 import { useAuthStore } from '../../stores/authStore'
 
@@ -50,7 +51,10 @@ export default function RegisterPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-canvas px-4 py-12">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg">
+            <FaFileInvoiceDollar className="h-7 w-7 text-white" />
+          </span>
           <h1 className="text-2xl font-bold text-ink">Factus Easy</h1>
           <p className="text-sm text-muted">Facturación electrónica SRI</p>
         </div>

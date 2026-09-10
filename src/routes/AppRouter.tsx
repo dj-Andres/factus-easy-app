@@ -11,7 +11,6 @@ import SriTaxesPage from '../pages/config/SriTaxesPage'
 import CustomerListPage from '../pages/customers/CustomerListPage'
 import DashboardPage from '../pages/dashboard/DashboardPage'
 import DocumentStatusPage from '../pages/documents/DocumentStatusPage'
-import ReceivedDocumentsPage from '../pages/documents/ReceivedDocumentsPage'
 import QuickInvoiceFormPage from '../pages/invoices/QuickInvoiceFormPage'
 import QuickInvoiceListPage from '../pages/invoices/QuickInvoiceListPage'
 import QuickCreditNoteFormPage from '../pages/credit-notes/QuickCreditNoteFormPage'
@@ -56,7 +55,6 @@ export default function AppRouter() {
           <Route path="/quick-retentions/:id" element={<QuickRetentionFormPage />} />
           <Route path="/quick-retentions/:id/edit" element={<QuickRetentionFormPage />} />
           <Route path="/documents" element={<DocumentStatusPage />} />
-          <Route path="/received-documents" element={<ReceivedDocumentsPage />} />
           <Route path="/settings" element={<CompanyPage />} />
           <Route path="/settings/establishments" element={<EstablishmentsPage />} />
           <Route path="/settings/emission-points" element={<EmissionPointsPage />} />
