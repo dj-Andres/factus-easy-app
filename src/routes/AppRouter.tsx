@@ -2,6 +2,8 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import DashboardLayout from '../components/layout/DashboardLayout'
 import LoginPage from '../pages/auth/LoginPage'
 import RegisterPage from '../pages/auth/RegisterPage'
+import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage'
+import ResetPasswordPage from '../pages/auth/ResetPasswordPage'
 import CompanyPage from '../pages/config/CompanyPage'
 import EmissionPointsPage from '../pages/config/EmissionPointsPage'
 import EstablishmentsPage from '../pages/config/EstablishmentsPage'
@@ -30,6 +32,8 @@ export default function AppRouter() {
       <Route element={<GuestRoute />}>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
       </Route>
 
       <Route element={<ProtectedRoute />}>

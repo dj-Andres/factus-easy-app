@@ -91,6 +91,15 @@ export default function LoginPage() {
               )}
             </div>
 
+            <div className="text-right">
+              <Link
+                to="/forgot-password"
+                className="text-sm font-medium text-accent hover:text-accent-hover"
+              >
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
+
             <Button type="submit" color="blue" className="w-full" disabled={isLoading}>
               {isLoading && <Spinner size="sm" className="mr-2" />}
               Entrar
